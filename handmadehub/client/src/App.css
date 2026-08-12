@@ -1,0 +1,98 @@
+/* App.css */
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #f9f9f9;
+  margin: 0;
+  padding: 0;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+/* LOADING SPINNER */
+.spinner {
+  width: 50px;
+  height: 50px;
+  border: 5px solid #f3f3f3;
+  border-top: 5px solid #8b5a2b; 
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 50px auto;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* TABLET RESPONSIVE STYLES (iPads, small laptops) */
+@media (max-width: 1024px) {
+  /* Show exactly 2 columns on tablets */
+  .product-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+}
+
+/* MOBILE RESPONSIVE STYLES (Phones) */
+@media (max-width: 768px) {
+  /* Show the mobile menu button (☰) */
+  .mobile-menu-btn {
+    display: block !important;
+  }
+
+  /* Hide the desktop navigation links */
+  .desktop-nav {
+    display: none !important;
+  }
+
+  /* Hide the desktop Register/Login buttons */
+  .auth-box {
+    display: none !important;
+  }
+
+  /* Show 1 column on small phones */
+  .product-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Make the product detail page stack into 1 column */
+  .detail-grid {
+    grid-template-columns: 1fr !important;
+    gap: 20px !important;
+  }
+
+  /* Make the detail image smaller on mobile */
+  .detail-image {
+    height: 300px !important;
+  }
+
+  /* Shrink Hero text on mobile */
+  .hero-title {
+    font-size: 32px !important;
+  }
+  .hero-text {
+    font-size: 16px !important;
+  }
+}
+
+/* Custom thin scrollbar for category bar */
+.categoryBar::-webkit-scrollbar {
+  height: 6px;
+}
+.categoryBar::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
+}
+.categoryBar::-webkit-scrollbar-thumb {
+  background: #8b5a2b;
+  border-radius: 10px;
+}
+
+/* PRODUCT CARD HOVER EFFECT */
+.product-card:hover {
+  transform: translateY(-5px); /* Moves the card up 5 pixels */
+  box-shadow: 0 12px 20px rgba(0,0,0,0.12) !important; /* Makes the shadow bigger */
+  border-color: #e0e0e0 !important;
+}

@@ -1,0 +1,109 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           Int      @id @default(autoincrement())
+  email        String   @unique
+  password     String
+  name         String
+  role         String   @default("CUSTOMER")
+  isApproved   Boolean  @default(true) // NEW: Sellers will be false
+  createdAt    DateTime @default(now())
+  profileImage String?  
+  products     Product[]
+  orders       Order[]
+  reviews      Review[]
+  wishlist     Wishlist[]
+  couponUsage  UserCouponUsage[]
+}
+
+model Product {
+  id          Int      @id @default(autoincrement())
+  name        String
+  description String
+  price       Float
+  images      String[] // NEW: Array of image URLs!
+  category    String   @default("General")
+  stock       Int      @default(0)
+  createdAt   DateTime @default(now())
+  userId      Int
+  user        User     @relation(fields: [userId], references: [id])
+  orderItems  OrderItem[]
+  reviews     Review[]
+  wishlist    Wishlist[]
+}
+
+model Order {
+  id        Int      @id @default(autoincrement())
+  total     Float
+  status    String   @default("PENDING")
+  createdAt DateTime @default(now())
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id])
+  items     OrderItem[]
+  shippingAddress String?
+}
+
+model OrderItem {
+  id        Int     @id @default(autoincrement())
+  quantity  Int
+  price     Float
+  orderId   Int
+  order     Order   @relation(fields: [orderId], references: [id])
+  productId Int
+  product   Product @relation(fields: [productId], references: [id])
+}
+
+model Review {
+  id        Int      @id @default(autoincrement())
+  rating    Int
+  comment   String
+  createdAt DateTime @default(now())
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id])
+  productId Int
+  product   Product  @relation(fields: [productId], references: [id])
+}
+
+// ADD THIS NEW MODEL:
+model Wishlist {
+  id        Int     @id @default(autoincrement())
+  userId    Int
+  user      User    @relation(fields: [userId], references: [id])
+  productId Int
+  product   Product @relation(fields: [productId], references: [id])
+
+  // A user can only have a product in their wishlist once
+  @@unique([userId, productId])
+}
+
+// ADD THIS NEW MODEL:
+model Coupon {
+  id               Int      @id @default(autoincrement())
+  code             String   @unique
+  discountPercent  Float
+  isActive         Boolean  @default(true)
+  usageLimit       Int?     // NEW: Max times it can be used (null = unlimited)
+  timesUsed        Int      @default(0) // NEW: How many times it has been used
+  createdAt        DateTime @default(now())
+  userUsage   UserCouponUsage[] // NEW
+}
+
+// NEW: Tracks how many times a specific user used a coupon
+model UserCouponUsage {
+  id        Int     @id @default(autoincrement())
+  userId    Int
+  user      User    @relation(fields: [userId], references: [id])
+  couponId  Int
+  coupon    Coupon  @relation(fields: [couponId], references: [id])
+  timesUsed Int     @default(1)
+
+  // This ensures a user can only have one usage record per coupon
+  @@unique([userId, couponId])
+}
