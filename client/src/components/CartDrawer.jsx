@@ -46,7 +46,7 @@ function CartDrawer() {
           ) : (
             cartItems.map((item) => (
               <div key={item.id} style={styles.item}>
-                             <img src={item.images[0].startsWith('/images') ? `http://localhost:3000${item.images[0]}` : item.images[0]} alt={item.name} style={styles.itemImage} />
+                             <img src={item.images[0].startsWith('/images') ? `https://handmadehub-6c0t.onrender.com${item.images[0]}` : item.images[0]} alt={item.name} style={styles.itemImage} />
                 <div style={styles.itemInfo}>
                   <h4 style={styles.itemName}>{item.name}</h4>
                   <div style={styles.qtyContainer}>

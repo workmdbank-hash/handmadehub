@@ -1,5 +1,5 @@
 // api.js
-const API_URL = 'http://localhost:3000/api';
+const API_URL = 'https://handmadehub-6c0t.onrender.com/api';
 
 // ==========================================
 // PRODUCT FUNCTIONS

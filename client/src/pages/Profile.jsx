@@ -74,7 +74,7 @@ function Profile() {
         <div style={styles.imageContainer}>
           {profileImage && profileImage !== 'null' ? (
             <img 
-              src={profileImage.startsWith('/images') ? `http://localhost:3000${profileImage}` : profileImage} 
+              src={profileImage.startsWith('/images') ? `https://handmadehub-6c0t.onrender.com${profileImage}` : profileImage} 
               alt="Profile" 
               style={styles.image}
             />
@@ -143,7 +143,7 @@ function Profile() {
                   const mainImage = product.images && product.images.length > 0 
                     ? product.images[0] 
                     : 'https://placehold.co/400x300?text=No+Image';
-                  const imgSrc = mainImage.startsWith('/images') ? `http://localhost:3000${mainImage}` : mainImage;
+                  const imgSrc = mainImage.startsWith('/images') ? `https://handmadehub-6c0t.onrender.com${mainImage}` : mainImage;
 
                   return (
                     <tr key={product.id}>

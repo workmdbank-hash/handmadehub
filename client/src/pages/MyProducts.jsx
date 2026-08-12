@@ -63,7 +63,7 @@ function MyProducts() {
               <tr key={product.id}>
                 <td style={styles.td}>
                   <img 
-                    src={product.imageUrl.startsWith('/images') ? `http://localhost:3000${product.imageUrl}` : product.imageUrl} 
+                    src={product.imageUrl.startsWith('/images') ? `https://handmadehub-6c0t.onrender.com${product.imageUrl}` : product.imageUrl} 
                     alt={product.name} 
                     style={styles.image}
                   />

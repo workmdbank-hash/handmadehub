@@ -75,7 +75,7 @@ function SellerOrders() {
                 <h3 style={styles.shippingTitle}>Items to Ship:</h3>
                 {order.items.map((item) => (
                   <div key={item.id} style={styles.itemRow}>
-                    <img src={item.product.images[0].startsWith('/images') ? `http://localhost:3000${item.product.images[0]}` : item.product.images[0]} alt={item.product.name} style={styles.itemImage} />
+                    <img src={item.product.images[0].startsWith('/images') ? `https://handmadehub-6c0t.onrender.com${item.product.images[0]}` : item.product.images[0]} alt={item.product.name} style={styles.itemImage} />
                     <div style={styles.itemInfo}>
                       <h4 style={styles.itemName}>{item.product.name}</h4>
                       <p style={styles.itemDetails}>Qty: {item.quantity} x {item.price} Ks</p>

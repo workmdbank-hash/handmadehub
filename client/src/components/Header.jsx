@@ -73,7 +73,7 @@ function Header() {
             <div style={styles.userBox} className="user-box">
               <Link to="/profile" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '10px' }}>
                 {profileImage && profileImage !== 'null' ? (
-                  <img src={profileImage.startsWith('/images') ? `http://localhost:3000${profileImage}` : profileImage} alt="Profile" style={styles.headerProfileImg} />
+                  <img src={profileImage.startsWith('/images') ? `https://handmadehub-6c0t.onrender.com${profileImage}` : profileImage} alt="Profile" style={styles.headerProfileImg} />
                 ) : (
                   <div style={styles.headerPlaceholder}>{name.charAt(0).toUpperCase()}</div>
                 )}

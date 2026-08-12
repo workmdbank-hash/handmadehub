@@ -46,7 +46,7 @@ function Wishlist() {
             <div key={item.id} style={styles.card}>
               <Link to={`/product/${item.product.id}`}>
                 <img 
-                  src={item.product.imageUrl.startsWith('/images') ? `http://localhost:3000${item.product.imageUrl}` : item.product.imageUrl} 
+                  src={item.product.imageUrl.startsWith('/images') ? `https://handmadehub-6c0t.onrender.com${item.product.imageUrl}` : item.product.imageUrl} 
                   alt={item.product.name} 
                   style={styles.image}
                 />

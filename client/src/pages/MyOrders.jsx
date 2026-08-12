@@ -59,7 +59,7 @@ function MyOrders() {
                 const mainImg = item.product.images && item.product.images.length > 0 
                   ? item.product.images[0] 
                   : 'https://placehold.co/50x50?text=No+Img';
-                const imgSrc = mainImg.startsWith('/images') ? `http://localhost:3000${mainImg}` : mainImg;
+                const imgSrc = mainImg.startsWith('/images') ? `https://handmadehub-6c0t.onrender.com${mainImg}` : mainImg;
 
                 return (
                   <div key={item.id} style={styles.itemRow}>

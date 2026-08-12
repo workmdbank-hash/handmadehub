@@ -77,7 +77,7 @@ function OrderDetails() {
         <h2 style={styles.boxTitle}>Items in this Order</h2>
         {order.items.map((item) => (
           <div key={item.id} style={styles.itemRow}>
-                <img src={item.product.images[0].startsWith('/images') ? `http://localhost:3000${item.product.images[0]}` : item.product.images[0]} alt={item.product.name} style={styles.itemImage} />
+                <img src={item.product.images[0].startsWith('/images') ? `https://handmadehub-6c0t.onrender.com${item.product.images[0]}` : item.product.images[0]} alt={item.product.name} style={styles.itemImage} />
             <div style={styles.itemInfo}>
               <Link to={`/product/${item.productId}`} style={styles.itemName}>{item.product.name}</Link>
               <p style={styles.itemDetails}>Quantity: {item.quantity}</p>

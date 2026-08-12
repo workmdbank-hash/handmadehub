@@ -11,7 +11,7 @@ function ProductCard({ product }) {
     ? product.images[0] 
     : 'https://placehold.co/400x300?text=No+Image';
 
-  const imgSrc = mainImage.startsWith('/images') ? `http://localhost:3000${mainImage}` : mainImage;
+  const imgSrc = mainImage.startsWith('/images') ? `https://handmadehub-6c0t.onrender.com${mainImage}` : mainImage;
 
   return (
     <div style={styles.card} className="product-card">
