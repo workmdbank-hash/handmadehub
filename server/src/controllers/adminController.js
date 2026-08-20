@@ -56,7 +56,7 @@ export const deleteUserAdmin = async (req, res) => {
   try {
     const userId = parseInt(req.params.id);
 
-    // NEW: Clean up ALL related data (including new Seller tables) to prevent database errors
+    // NEW: Clean up ALL related data to prevent database errors
     await prisma.$transaction([
       // 1. Delete Seller specific data
       prisma.sellerWithdrawal.deleteMany({ where: { sellerId: userId } }),
@@ -83,7 +83,10 @@ export const deleteUserAdmin = async (req, res) => {
       prisma.wishlist.deleteMany({ where: { userId: userId } }),
       prisma.wishlist.deleteMany({ where: { product: { userId: userId } } }),
 
-      // 5. Finally, delete the products and the user
+      // 5. NEW: Delete Coupon Usage
+      prisma.userCouponUsage.deleteMany({ where: { userId: userId } }),
+
+      // 6. Finally, delete the products and the user
       prisma.product.deleteMany({ where: { userId: userId } }),
       prisma.user.delete({ where: { id: userId } })
     ]);
