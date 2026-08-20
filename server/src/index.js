@@ -21,7 +21,11 @@ dotenv.config();
 const app = express();
 const PORT = 3000;
 
-app.use(cors());
+app.use(cors({
+  origin: '*', // Allows any website to access the backend (Safe for now)
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
 app.use(express.json());
 app.use('/images', express.static(path.join(process.cwd(), 'public/images')));
 app.use('/api/coupons', couponRoutes);
