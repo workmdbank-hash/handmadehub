@@ -1,5 +1,5 @@
 // This automatically detects if you are on localhost (PC) or an IP address (Phone)!
-const API_URL = `http://${window.location.hostname}:3000/api`;
+const API_URL = `https://handmadehub-mm.onrender.com`;
 
 // ==========================================
 // PRODUCT FUNCTIONS

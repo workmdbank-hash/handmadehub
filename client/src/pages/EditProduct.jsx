@@ -75,7 +75,7 @@ function EditProduct() {
   let currentImgSrc = 'https://placehold.co/400x300?text=No+Image';
   if (product.images && product.images.length > 0) {
     const firstImg = product.images[0];
-    currentImgSrc = firstImg.startsWith('/images') ? `http://${window.location.hostname}:3000${firstImg}` : firstImg;
+    currentImgSrc = firstImg.startsWith('/images') ? `https://handmadehub-mm.onrender.com${firstImg}` : firstImg;
   }
 
   return (

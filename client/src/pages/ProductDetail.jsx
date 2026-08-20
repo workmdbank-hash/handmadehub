@@ -36,7 +36,7 @@ function ProductDetail() {
         
         if (data.images && data.images.length > 0) {
           const firstImg = data.images[0];
-          setActiveImage(firstImg.startsWith('/images') ? `http://${window.location.hostname}:3000${firstImg}` : firstImg);
+          setActiveImage(firstImg.startsWith('/images') ? `https://handmadehub-mm.onrender.com${firstImg}` : firstImg);
         }
 
         const eligibility = await checkReviewEligibility(id);
@@ -110,7 +110,7 @@ function ProductDetail() {
           {product.images && product.images.length > 1 && (
             <div style={styles.thumbnailsRow}>
               {product.images.map((img, index) => {
-                const thumbSrc = img.startsWith('/images') ? `http://${window.location.hostname}:3000${img}` : img;
+                const thumbSrc = img.startsWith('/images') ? `https://handmadehub-mm.onrender.com${img}` : img;
                 return (
                   <img 
                     key={index} 

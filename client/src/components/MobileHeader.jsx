@@ -176,7 +176,7 @@ function MobileHeader() {
               <Link to="/profile" style={styles.mobileProfileCard} onClick={closeMenu}>
                 <div style={styles.profileAvatar}>
                   {profileImage && profileImage !== 'null' ? (
-                    <img src={profileImage.startsWith('/images') ? `http://${window.location.hostname}:3000${profileImage}` : profileImage} alt="Profile" style={styles.avatarImg} />
+                    <img src={profileImage.startsWith('/images') ? `https://handmadehub-mm.onrender.com${profileImage}` : profileImage} alt="Profile" style={styles.avatarImg} />
                   ) : (
                     <span>{name ? name.charAt(0).toUpperCase() : 'U'}</span>
                   )}

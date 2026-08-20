@@ -47,7 +47,7 @@ function SellerProfile() {
         <div style={styles.imageContainer}>
           {seller.profileImage ? (
             <img 
-              src={seller.profileImage.startsWith('/images') ? `http://${window.location.hostname}:3000${seller.profileImage}` : seller.profileImage} 
+              src={seller.profileImage.startsWith('/images') ? `https://handmadehub-mm.onrender.com${seller.profileImage}` : seller.profileImage} 
               alt={seller.name} 
               style={styles.image}
             />

@@ -61,7 +61,7 @@ function ShopPage() {
       {/* Shop Banner */}
       <div style={{...styles.banner, height: isMobile ? '150px' : '250px'}}>
         {shop.banner ? (
-          <img src={shop.banner.startsWith('/images') ? `http://${window.location.hostname}:3000${shop.banner}` : shop.banner} alt="Shop Banner" style={styles.bannerImg} />
+          <img src={shop.banner.startsWith('/images') ? `https://handmadehub-mm.onrender.com${shop.banner}` : shop.banner} alt="Shop Banner" style={styles.bannerImg} />
         ) : (
           <div style={styles.bannerPlaceholder}></div>
         )}
@@ -72,7 +72,7 @@ function ShopPage() {
         <div style={styles.logoContainer}>
           {shop.logo ? (
             <img 
-              src={shop.logo.startsWith('/images') ? `http://${window.location.hostname}:3000${shop.logo}` : shop.logo} 
+              src={shop.logo.startsWith('/images') ? `https://handmadehub-mm.onrender.com${shop.logo}` : shop.logo} 
               alt="Shop Logo" 
               style={{
                 ...styles.logo, 

@@ -78,10 +78,10 @@ function SellerOrders() {
                   if (item.product.images && Array.isArray(item.product.images) && item.product.images.length > 0) {
                     const firstImg = item.product.images[0];
                     if (firstImg && typeof firstImg === 'string') {
-                      imgSrc = firstImg.startsWith('/images') ? `http://${window.location.hostname}:3000${firstImg}` : firstImg;
+                      imgSrc = firstImg.startsWith('/images') ? `https://handmadehub-mm.onrender.com${firstImg}` : firstImg;
                     }
                   } else if (item.product.imageUrl && typeof item.product.imageUrl === 'string') {
-                    imgSrc = item.product.imageUrl.startsWith('/images') ? `http://${window.location.hostname}:3000${item.product.imageUrl}` : item.product.imageUrl;
+                    imgSrc = item.product.imageUrl.startsWith('/images') ? `https://handmadehub-mm.onrender.com${item.product.imageUrl}` : item.product.imageUrl;
                   }
 
                   return (

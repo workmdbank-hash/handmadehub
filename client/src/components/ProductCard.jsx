@@ -13,7 +13,7 @@ function ProductCard({ product }) {
   const mainImage = product.images && product.images.length > 0 
     ? product.images[0] 
     : 'https://placehold.co/400x300/eee/ccc?text=No+Image';
-  const imgSrc = mainImage.startsWith('/images') ? `http://${window.location.hostname}:3000${mainImage}` : mainImage;
+  const imgSrc = mainImage.startsWith('/images') ? `https://handmadehub-mm.onrender.com${mainImage}` : mainImage;
 
   return (
     <div style={styles.card} className="product-card">

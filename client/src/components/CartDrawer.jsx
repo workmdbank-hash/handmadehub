@@ -49,9 +49,9 @@ function CartDrawer() {
                 <img 
                   src={
                     item.images && Array.isArray(item.images) && item.images.length > 0
-                      ? (item.images[0].startsWith('/images') ? `http://${window.location.hostname}:3000${item.images[0]}` : item.images[0])
+                      ? (item.images[0].startsWith('/images') ? `https://handmadehub-mm.onrender.com${item.images[0]}` : item.images[0])
                       : (item.imageUrl && typeof item.imageUrl === 'string'
-                          ? (item.imageUrl.startsWith('/images') ? `http://${window.location.hostname}:3000${item.imageUrl}` : item.imageUrl)
+                          ? (item.imageUrl.startsWith('/images') ? `https://handmadehub-mm.onrender.com${item.imageUrl}` : item.imageUrl)
                           : 'https://placehold.co/60x60?text=No+Img'
                         )
                   } 

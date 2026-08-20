@@ -77,13 +77,13 @@ function SellerShopSettings() {
    // Helper to show image source (Checks for newly selected files first!)
   const getLogoSrc = () => {
     if (logoFile) return URL.createObjectURL(logoFile);
-    if (currentLogo && currentLogo.startsWith('/images')) return `http://${window.location.hostname}:3000${currentLogo}`;
+    if (currentLogo && currentLogo.startsWith('/images')) return `https://handmadehub-mm.onrender.com${currentLogo}`;
     return currentLogo;
   };
   
   const getBannerSrc = () => {
     if (bannerFile) return URL.createObjectURL(bannerFile);
-    if (currentBanner && currentBanner.startsWith('/images')) return `http://${window.location.hostname}:3000${currentBanner}`;
+    if (currentBanner && currentBanner.startsWith('/images')) return `https://handmadehub-mm.onrender.com${currentBanner}`;
     return currentBanner;
   };
 

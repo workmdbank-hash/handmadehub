@@ -112,7 +112,7 @@ function Messages() {
                   <div key={c.id} style={isActive ? styles.activeConvItem : styles.convItem} onClick={() => handleSelectConversation(c.id)}>
                     <div style={styles.convAvatar}>
                       {otherUser?.profileImage ? (
-                        <img src={otherUser.profileImage.startsWith('/images') ? `http://${window.location.hostname}:3000${otherUser.profileImage}` : otherUser.profileImage} alt="User" style={styles.avatarImg} />
+                        <img src={otherUser.profileImage.startsWith('/images') ? `https://handmadehub-mm.onrender.com${otherUser.profileImage}` : otherUser.profileImage} alt="User" style={styles.avatarImg} />
                       ) : (
                         <span>{otherUser?.name?.charAt(0) || 'U'}</span>
                       )}

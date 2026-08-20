@@ -125,7 +125,7 @@ function Header() {
             <div style={styles.userMenuContainer} className="userMenuContainer" ref={userMenuRef}>
               <button style={styles.userMenuBtn} onClick={() => setShowUserMenu(!showUserMenu)}>
                 {profileImage && profileImage !== 'null' ? (
-                  <img src={profileImage.startsWith('/images') ? `http://${window.location.hostname}:3000${profileImage}` : profileImage} alt="Profile" style={styles.headerProfileImg} />
+                  <img src={profileImage.startsWith('/images') ? `https://handmadehub-mm.onrender.com${profileImage}` : profileImage} alt="Profile" style={styles.headerProfileImg} />
                 ) : (
                   <div style={styles.headerPlaceholder}>{name ? name.charAt(0).toUpperCase() : 'U'}</div>
                 )}

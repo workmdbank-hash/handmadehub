@@ -67,7 +67,7 @@ function Profile() {
     }
   };
 
-  const getImgSrc = (path) => path && path.startsWith('/images') ? `http://${window.location.hostname}:3000${path}` : path;
+  const getImgSrc = (path) => path && path.startsWith('/images') ? `https://handmadehub-mm.onrender.com${path}` : path;
 
   return (
     <div style={{ maxWidth: '1200px', margin: '0 auto', padding: isMobile ? '20px 15px' : '40px 20px' }}>

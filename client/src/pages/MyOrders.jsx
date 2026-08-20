@@ -62,7 +62,7 @@ function MyOrders() {
                 let imgSrc = 'https://placehold.co/50x50/eee/ccc?text=No+Img';
                 if (item.product.images && item.product.images.length > 0) {
                   const firstImg = item.product.images[0];
-                  imgSrc = firstImg.startsWith('/images') ? `http://${window.location.hostname}:3000${firstImg}` : firstImg;
+                  imgSrc = firstImg.startsWith('/images') ? `https://handmadehub-mm.onrender.com${firstImg}` : firstImg;
                 }
 
                 return (
