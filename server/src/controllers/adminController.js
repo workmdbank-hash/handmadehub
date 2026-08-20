@@ -56,52 +56,60 @@ export const deleteUserAdmin = async (req, res) => {
   try {
     const userId = parseInt(req.params.id);
 
-    // NEW: Perfectly ordered deletion to prevent ALL relational constraint errors
-    await prisma.$transaction([
-      // 1. Delete Notifications & Messages
-      prisma.notification.deleteMany({ where: { userId: userId } }),
-      prisma.message.deleteMany({ where: { senderId: userId } }),
-      
-      // 2. Delete Conversations
-      prisma.conversation.deleteMany({ where: { buyerId: userId } }),
-      prisma.conversation.deleteMany({ where: { sellerId: userId } }),
+    // 1. Find all conversations this user is a part of
+    const conversations = await prisma.conversation.findMany({
+      where: { OR: [{ buyerId: userId }, { sellerId: userId }] },
+      select: { id: true }
+    });
+    const conversationIds = conversations.map(c => c.id);
 
-      // 3. Delete Seller Reviews (Must happen before Orders)
+    // 2. Delete everything in the correct order
+    await prisma.$transaction([
+      // Delete ALL messages in those conversations (sent OR received)
+      prisma.message.deleteMany({ where: { conversationId: { in: conversationIds } } }),
+      
+      // Now safe to delete Conversations
+      prisma.conversation.deleteMany({ where: { OR: [{ buyerId: userId }, { sellerId: userId }] } }),
+
+      // Delete Seller Reviews (Must happen before Orders)
       prisma.sellerReview.deleteMany({ where: { sellerId: userId } }),
       prisma.sellerReview.deleteMany({ where: { buyerId: userId } }),
 
-      // 4. Delete Product Reviews (Must happen before OrderItems and Products)
+      // Delete Product Reviews (Must happen before OrderItems and Products)
       prisma.review.deleteMany({ where: { userId: userId } }),
       prisma.review.deleteMany({ where: { product: { userId: userId } } }),
 
-      // 5. Delete Wishlists (Must happen before Products)
+      // Delete Wishlists (Must happen before Products)
       prisma.wishlist.deleteMany({ where: { userId: userId } }),
       prisma.wishlist.deleteMany({ where: { product: { userId: userId } } }),
 
-      // 6. Delete Seller Financials (Must happen before Orders)
+      // Delete Seller Financials (Must happen before Orders)
       prisma.sellerWithdrawal.deleteMany({ where: { sellerId: userId } }),
       prisma.sellerTransaction.deleteMany({ where: { sellerId: userId } }),
       prisma.sellerBalance.deleteMany({ where: { sellerId: userId } }),
       prisma.sellerShop.deleteMany({ where: { sellerId: userId } }),
 
-      // 7. Delete Coupon Usage
+      // Delete Coupon Usage
       prisma.userCouponUsage.deleteMany({ where: { userId: userId } }),
 
-      // 8. Delete Order Items (NOW safe because Reviews are gone)
+      // Delete Notifications
+      prisma.notification.deleteMany({ where: { userId: userId } }),
+
+      // Delete Order Items (NOW safe because Reviews are gone)
       prisma.orderItem.deleteMany({ where: { product: { userId: userId } } }),
       prisma.orderItem.deleteMany({ where: { order: { userId: userId } } }),
 
-      // 9. Delete Orders (NOW safe because SellerReviews/Transactions are gone)
+      // Delete Orders (NOW safe because SellerReviews/Transactions are gone)
       prisma.order.deleteMany({ where: { userId: userId } }),
 
-      // 10. Finally, delete Products and the User
+      // Finally, delete Products and the User
       prisma.product.deleteMany({ where: { userId: userId } }),
       prisma.user.delete({ where: { id: userId } })
     ]);
 
     res.status(200).json({ message: 'User deleted successfully' });
   } catch (error) {
-    console.log("DELETE USER ERROR:", error); // This will print the exact error in Render logs!
+    console.log("DELETE USER ERROR:", error);
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 };
