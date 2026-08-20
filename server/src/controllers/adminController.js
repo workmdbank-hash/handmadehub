@@ -55,26 +55,36 @@ export const deleteProductAdmin = async (req, res) => {
 export const deleteUserAdmin = async (req, res) => {
   try {
     const userId = parseInt(req.params.id);
-    
-    // We must delete in a specific order so the database doesn't complain!
+
+    // NEW: Clean up ALL related data (including new Seller tables) to prevent database errors
     await prisma.$transaction([
-      // 1. Delete Order Items where the product belongs to this user (seller)
+      // 1. Delete Seller specific data
+      prisma.sellerWithdrawal.deleteMany({ where: { sellerId: userId } }),
+      prisma.sellerTransaction.deleteMany({ where: { sellerId: userId } }),
+      prisma.sellerBalance.deleteMany({ where: { sellerId: userId } }),
+      prisma.sellerShop.deleteMany({ where: { sellerId: userId } }),
+      prisma.sellerReview.deleteMany({ where: { sellerId: userId } }),
+      prisma.sellerReview.deleteMany({ where: { buyerId: userId } }),
+
+      // 2. Delete Chat & Notifications
+      prisma.message.deleteMany({ where: { senderId: userId } }),
+      prisma.notification.deleteMany({ where: { userId: userId } }),
+      prisma.conversation.deleteMany({ where: { buyerId: userId } }),
+      prisma.conversation.deleteMany({ where: { sellerId: userId } }),
+
+      // 3. Delete Order Items & Orders
       prisma.orderItem.deleteMany({ where: { product: { userId: userId } } }),
-      // 2. Delete Order Items where the order belongs to this user (buyer)
       prisma.orderItem.deleteMany({ where: { order: { userId: userId } } }),
-      // 3. NOW we can delete the user's Orders safely
       prisma.order.deleteMany({ where: { userId: userId } }),
-      // 4. Delete Reviews written by this user
+
+      // 4. Delete Reviews & Wishlists
       prisma.review.deleteMany({ where: { userId: userId } }),
-      // 5. Delete Reviews on products created by this user
       prisma.review.deleteMany({ where: { product: { userId: userId } } }),
-      // 6. Delete Wishlists belonging to this user
       prisma.wishlist.deleteMany({ where: { userId: userId } }),
-      // 7. Delete Wishlist items for products created by this user
       prisma.wishlist.deleteMany({ where: { product: { userId: userId } } }),
-      // 8. Delete the products the user created
+
+      // 5. Finally, delete the products and the user
       prisma.product.deleteMany({ where: { userId: userId } }),
-      // 9. FINALLY, delete the user
       prisma.user.delete({ where: { id: userId } })
     ]);
 
