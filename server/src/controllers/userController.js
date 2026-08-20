@@ -30,7 +30,7 @@ export const updateProfileImage = async (req, res) => {
 // GET SELLER PROFILE BY ID
 export const getSellerProfile = async (req, res) => {
   try {
-    const sellerId = parseInt(req.params.id);
+    const sellerId = parseInt(req.params.id); // THIS LINE WAS MISSING!
 
     const seller = await prisma.user.findUnique({
       where: { id: sellerId },
@@ -39,7 +39,8 @@ export const getSellerProfile = async (req, res) => {
         name: true,
         createdAt: true,
         profileImage: true,
-        products: true 
+        products: true,
+        shop: true // Include Shop Info
       }
     });
 
@@ -49,6 +50,7 @@ export const getSellerProfile = async (req, res) => {
 
     res.status(200).json(seller);
   } catch (error) {
+    console.log("GET SELLER PROFILE ERROR:", error);
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 };

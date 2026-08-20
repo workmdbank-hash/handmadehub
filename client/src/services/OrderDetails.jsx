@@ -87,7 +87,7 @@ function OrderDetails() {
         {order.items.map((item) => (
           <div key={item.id} style={styles.itemRow}>
             <img 
-              src={item.product.imageUrl.startsWith('/images') ? `https://handmadehub-6c0t.onrender.com${item.product.imageUrl}` : item.product.imageUrl} 
+              src={item.product.imageUrl.startsWith('/images') ? `http://${window.location.hostname}:3000${item.product.imageUrl}` : item.product.imageUrl} 
               alt={item.product.name} 
               style={styles.itemImage}
             />
@@ -114,12 +114,12 @@ const styles = {
   statusBadge: { padding: '8px 16px', borderRadius: '20px', fontSize: '14px', fontWeight: 'bold', height: 'fit-content' },
   grid: { display: 'flex', gap: '20px', marginBottom: '30px', flexWrap: 'wrap' },
   shippingBox: { flex: '1', minWidth: '250px', backgroundColor: '#fffaf0', border: '1px dashed #8b5a2b', borderRadius: '8px', padding: '20px' },
-  paymentBox: { flex: '1', minWidth: '250px', backgroundColor: '#fff', border: '1px solid #eaeaea', borderRadius: '8px', padding: '20px' },
+  paymentBox: { flex: '1', minWidth: '250px', backgroundColor: '#FDFBF7', border: '1px solid #eaeaea', borderRadius: '8px', padding: '20px' },
   boxTitle: { color: '#8b5a2b', marginTop: '0', marginBottom: '15px', fontSize: '18px' },
   shippingText: { margin: '5px 0', color: '#555', lineHeight: '1.5' },
   row: { display: 'flex', justifyContent: 'space-between', color: '#666', marginBottom: '10px' },
   totalRow: { display: 'flex', justifyContent: 'space-between', borderTop: '1px solid #eee', paddingTop: '10px', marginTop: '10px', fontSize: '18px', fontWeight: 'bold', color: '#1a1a1a' },
-  itemsSection: { backgroundColor: '#fff', padding: '20px', borderRadius: '8px', boxShadow: '0 2px 5px rgba(0,0,0,0.05)' },
+  itemsSection: { backgroundColor: '#FDFBF7', padding: '20px', borderRadius: '8px', boxShadow: '0 2px 5px rgba(0,0,0,0.05)' },
   itemRow: { display: 'flex', alignItems: 'center', gap: '15px', borderBottom: '1px solid #f0f0f0', paddingBottom: '15px', marginBottom: '15px' },
   itemImage: { width: '70px', height: '70px', objectFit: 'cover', borderRadius: '5px' },
   itemInfo: { flexGrow: 1 },

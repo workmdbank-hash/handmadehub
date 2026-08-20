@@ -34,7 +34,7 @@ const styles = {
     padding: '40px'
   },
   card: {
-    backgroundColor: '#fff',
+    backgroundColor: '#FDFBF7',
     padding: '40px',
     borderRadius: '10px',
     boxShadow: '0 4px 10px rgba(0,0,0,0.1)',

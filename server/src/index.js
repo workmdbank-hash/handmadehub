@@ -10,7 +10,11 @@ import reviewRoutes from './routes/reviewRoutes.js';
 import wishlistRoutes from './routes/wishlistRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
 import userRoutes from './routes/userRoutes.js'; // NEW
+import chatRoutes from './routes/chatRoutes.js';
+import sellerRoutes from './routes/sellerRoutes.js';
 import couponRoutes from './routes/couponRoutes.js';
+import notificationRoutes from './routes/notificationRoutes.js';
+import shopRoutes from './routes/shopRoutes.js';
 
 dotenv.config();
 
@@ -29,6 +33,10 @@ app.use('/api/reviews', reviewRoutes);
 app.use('/api/wishlist', wishlistRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/users', userRoutes); // NEW
+app.use('/api/conversations', chatRoutes);
+app.use('/api/seller', sellerRoutes);
+app.use('/api/shops', shopRoutes);
+app.use('/api/notifications', notificationRoutes);
 
 app.get('/api/health', (req, res) => {
   res.status(200).json({ status: 'success', message: 'Server is healthy!' });

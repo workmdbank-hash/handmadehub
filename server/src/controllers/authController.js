@@ -6,7 +6,11 @@ import jwt from 'jsonwebtoken';
 // REGISTER LOGIC
 export const registerUser = async (req, res) => {
   try {
-    const { name, email, password, role } = req.body;
+    const { 
+      name, email, password, role, 
+      phone, country, city, nrc, shopAddress, 
+      shopName, shopDescription, shopCategory, about, shippingPolicy, returnPolicy 
+    } = req.body;
 
     // 1. Check if user already exists
     const userExists = await prisma.user.findUnique({ where: { email } });
@@ -19,23 +23,50 @@ export const registerUser = async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, salt);
 
     // 3. Determine role and approval status
-    // If role is SELLER, set isApproved to false. Otherwise, true.
     const userRole = role === 'SELLER' ? 'SELLER' : 'CUSTOMER';
     const isApproved = userRole === 'SELLER' ? false : true;
 
-    // 4. Save user to database
+    // 4. Save user to database (with new personal info)
     const user = await prisma.user.create({
       data: {
         name,
         email,
         password: hashedPassword,
         role: userRole,
-        isApproved: isApproved
+        isApproved: isApproved,
+        phone,
+        country,
+        city,
+        nrc,
+        shopAddress
       },
     });
 
-    res.status(201).json({ message: 'Account created successfully!', userId: user.id });
+    // 5. If registering as a Seller, create their Shop automatically!
+    if (userRole === 'SELLER' && shopName) {
+      const generateSlug = (name) => {
+        return name.toString().toLowerCase()
+          .replace(/\s+/g, '-').replace(/[^\w\-]+/g, '').replace(/\-\-+/g, '-')
+          .replace(/^-+/, '').replace(/-+$/, '');
+      };
+
+      await prisma.sellerShop.create({
+        data: {
+          sellerId: user.id,
+          name: shopName,
+          slug: generateSlug(shopName),
+          description: shopDescription,
+          category: shopCategory,
+          about: about,
+          shippingPolicy: shippingPolicy,
+          returnPolicy: returnPolicy
+        }
+      });
+    }
+
+    res.status(201).json({ message: 'Account created successfully! Please wait for Admin approval to login.', userId: user.id });
   } catch (error) {
+    console.log(error);
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 };
@@ -57,7 +88,7 @@ export const loginUser = async (req, res) => {
       return res.status(400).json({ message: 'Invalid email or password' });
     }
 
-    // 3. NEW: Check if seller is approved
+    // 3. Check if seller is approved
     if (user.role === 'SELLER' && !user.isApproved) {
       return res.status(403).json({ message: 'Your seller account is pending Admin approval.' });
     }
@@ -69,6 +100,12 @@ export const loginUser = async (req, res) => {
       { expiresIn: '30d' }
     );
 
+    // 5. Fetch the seller's shop slug if they have one
+    const shop = await prisma.sellerShop.findUnique({ 
+      where: { sellerId: user.id }, 
+      select: { slug: true } 
+    });
+
     res.status(200).json({ 
       message: 'Login successful!', 
       token, 
@@ -76,7 +113,8 @@ export const loginUser = async (req, res) => {
       name: user.name, 
       email: user.email, 
       profileImage: user.profileImage, 
-      id: user.id 
+      id: user.id,
+      shopSlug: shop?.slug || null 
     });
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });

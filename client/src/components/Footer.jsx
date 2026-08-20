@@ -1,11 +1,10 @@
-// Footer.jsx
 import React from 'react';
 import { Link } from 'react-router-dom';
 
 function Footer() {
   return (
     <footer style={styles.footer}>
-      <p>© 2024 HandmadeHub. All rights reserved.</p>
+      <p style={styles.copyright}>© 2024 HandmadeHub. All rights reserved.</p>
       <div style={styles.links}>
         <Link to="/about" style={styles.link}>About Us</Link>
         <Link to="/contact" style={styles.link}>Contact</Link>
@@ -18,23 +17,19 @@ function Footer() {
 
 const styles = {
   footer: {
-    backgroundColor: '#333',
-    color: 'white',
-    textAlign: 'center',
-    padding: '20px',
-    marginTop: '40px'
-  },
-  links: {
+    backgroundColor: '#212121',
+    color: '#FDFBF7',
     display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
     justifyContent: 'center',
     gap: '15px',
-    marginTop: '10px'
+    padding: '40px 20px',
+    marginTop: '60px'
   },
-  link: {
-    color: '#bbb',
-    textDecoration: 'none',
-    fontSize: '14px'
-  }
+  copyright: { margin: 0, fontSize: '14px', color: '#bbb' },
+  links: { display: 'flex', gap: '20px', flexWrap: 'wrap', justifyContent: 'center' },
+  link: { color: '#FDFBF7', textDecoration: 'none', fontSize: '14px', fontWeight: '500' }
 };
 
 export default Footer;

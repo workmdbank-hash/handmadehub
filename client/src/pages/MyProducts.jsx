@@ -63,7 +63,7 @@ function MyProducts() {
               <tr key={product.id}>
                 <td style={styles.td}>
                   <img 
-                    src={product.imageUrl.startsWith('/images') ? `https://handmadehub-6c0t.onrender.com${product.imageUrl}` : product.imageUrl} 
+                    src={product.imageUrl.startsWith('/images') ? `http://${window.location.hostname}:3000${product.imageUrl}` : product.imageUrl} 
                     alt={product.name} 
                     style={styles.image}
                   />
@@ -91,7 +91,7 @@ const styles = {
   header: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' },
   title: { color: '#8b5a2b', margin: 0 },
   addBtn: { padding: '10px 20px', backgroundColor: '#8b5a2b', color: 'white', textDecoration: 'none', borderRadius: '5px', fontWeight: 'bold' },
-  table: { width: '100%', borderCollapse: 'collapse', backgroundColor: '#fff', boxShadow: '0 2px 5px rgba(0,0,0,0.05)' },
+  table: { width: '100%', borderCollapse: 'collapse', backgroundColor: '#FDFBF7', boxShadow: '0 2px 5px rgba(0,0,0,0.05)' },
   th: { textAlign: 'left', padding: '15px', borderBottom: '2px solid #8b5a2b', color: '#333' },
   td: { padding: '15px', borderBottom: '1px solid #eee', color: '#555' },
   image: { width: '50px', height: '50px', objectFit: 'cover', borderRadius: '5px' },

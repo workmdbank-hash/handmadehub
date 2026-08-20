@@ -1,4 +1,3 @@
-// Home.jsx
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import ProductCard from '../components/ProductCard';
@@ -12,13 +11,12 @@ function Home() {
   
   const [activeCategory, setActiveCategory] = useState('All');
   const [categories, setCategories] = useState(['All']);
-  const [sortOption, setSortOption] = useState('newest'); // NEW: Sorting state
+  const [sortOption, setSortOption] = useState('newest');
 
   useEffect(() => {
     const fetchProducts = async () => {
       setLoading(true);
       try {
-        // Pass the sortOption to the API!
         const data = await getProducts(searchTerm, activeCategory, sortOption);
         setProducts(data);
       } catch (error) {
@@ -29,12 +27,14 @@ function Home() {
     };
 
     fetchProducts();
-  }, [searchTerm, activeCategory, sortOption]); // Re-run if search, category, OR sort changes
+  }, [searchTerm, activeCategory, sortOption]);
 
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const cats = await getCategories();
+        let cats = await getCategories();
+        // Auto-fix the "Friuts" typo if it exists
+        cats = cats.map(c => c === 'Friuts' ? 'Fruits' : c);
         setCategories(['All', ...cats]);
       } catch (error) {
         console.error("Failed to load categories");
@@ -45,9 +45,8 @@ function Home() {
 
   return (
     <>
-      {/* HERO SECTION */}
       {!searchTerm && (
-        <section style={styles.hero}>
+        <section className="hero-banner" style={styles.hero}>
           <div style={styles.heroOverlay}>
             <h1 className="hero-title" style={styles.heroTitle}>Unique Handmade Treasures</h1>
             <p className="hero-text" style={styles.heroText}>Discover one-of-a-kind items crafted with love by artisans.</p>
@@ -56,16 +55,14 @@ function Home() {
         </section>
       )}
 
-      {/* CONSTRAINED CONTENT */}
       <main style={styles.main}>
         <h1 id="products" style={styles.title}>
           {searchTerm ? `Search results for: "${searchTerm}"` : 'Featured Handmade Products'}
         </h1>
 
-        {/* CATEGORY & SORTING BAR */}
         {!searchTerm && (
           <div style={styles.filterBar}>
-            <div style={styles.categoryBar}>
+            <div style={styles.categoryBar} className="category-scroll">
               {categories.map((cat) => (
                 <button 
                   key={cat} 
@@ -77,7 +74,6 @@ function Home() {
               ))}
             </div>
             
-            {/* Sort Dropdown */}
             <select 
               style={styles.sortDropdown} 
               value={sortOption} 
@@ -113,41 +109,38 @@ const styles = {
     backgroundImage: 'url(https://images.unsplash.com/photo-1452860606245-08befc0ff44b?q=80&w=1920&auto=format&fit=crop)',
     backgroundSize: 'cover',
     backgroundPosition: 'center',
-    height: 'clamp(250px, 50vh, 500px)',
+    height: 'clamp(250px, 50vh, 500px)', // Desktop height
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
+    boxSizing: 'border-box' // Prevents bleeding
   },
   heroOverlay: {
     backgroundColor: 'rgba(0, 0, 0, 0.45)',
-    width: '100%',
-    height: '100%',
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    justifyContent: 'center',
-    textAlign: 'center',
-    padding: '20px'
+    width: '100%', height: '100%',
+    display: 'flex', flexDirection: 'column',
+    alignItems: 'center', justifyContent: 'center',
+    textAlign: 'center', padding: '20px',
+    boxSizing: 'border-box'
   },
   heroTitle: { color: 'white', fontSize: 'clamp(28px, 6vw, 48px)', margin: 0, marginBottom: '10px' },
   heroText: { color: 'white', fontSize: 'clamp(16px, 3vw, 20px)', marginBottom: '20px' },
   heroBtn: { backgroundColor: '#8b5a2b', color: 'white', padding: '12px 30px', borderRadius: '5px', fontSize: '18px', fontWeight: 'bold', textDecoration: 'none' },
   title: { textAlign: 'center', color: '#333', marginBottom: '20px' },
-  // Filter Bar Layout
   filterBar: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px', flexWrap: 'wrap', gap: '15px' },
-  categoryBar: { 
-    display: 'flex', 
-    gap: '10px', 
-    overflowX: 'auto', // Makes it scrollable!
-    whiteSpace: 'nowrap', // Stops them from wrapping to the next line
-    paddingBottom: '10px', // Adds space for the scrollbar
-    scrollbarWidth: 'thin' // Makes the scrollbar thin and neat (Firefox)
-  },
+  categoryBar: { display: 'flex', gap: '10px', overflowX: 'auto', whiteSpace: 'nowrap', paddingBottom: '5px' },
   catBtn: { padding: '8px 16px', backgroundColor: 'transparent', border: '1px solid #ccc', borderRadius: '20px', cursor: 'pointer', fontSize: '14px', color: '#555' },
   activeCatBtn: { padding: '8px 16px', backgroundColor: '#8b5a2b', border: '1px solid #8b5a2b', borderRadius: '20px', cursor: 'pointer', fontSize: '14px', color: 'white', fontWeight: 'bold' },
-  // Sort Dropdown Style
   sortDropdown: { padding: '8px 16px', fontSize: '14px', borderRadius: '5px', border: '1px solid #ccc', cursor: 'pointer', outline: 'none' },
-  productGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: '25px' }
+  // NEW: Added w-full, max-w-full, box-border
+  productGrid: { 
+    display: 'grid', 
+    gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', 
+    gap: '25px', 
+    width: '100%', 
+    maxWidth: '100%', 
+    boxSizing: 'border-box' 
+  }
 };
 
 export default Home;

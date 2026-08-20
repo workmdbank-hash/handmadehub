@@ -10,22 +10,25 @@ function EditProduct() {
   const [loading, setLoading] = useState(true);
   
   const [formData, setFormData] = useState({
-    name: '', description: '', price: '', category: '', stock: ''
+    name: '', description: '', price: '', salePrice: '', category: '', stock: '', materials: '', processingTime: '', sku: ''
   });
-  const [imageFile, setImageFile] = useState(null);
+  const [imageFiles, setImageFiles] = useState([]);
 
   useEffect(() => {
     const fetchProduct = async () => {
       try {
         const data = await getProductById(id);
         setProduct(data);
-        // Pre-fill the form with current product data
         setFormData({
           name: data.name,
           description: data.description,
           price: data.price,
+          salePrice: data.salePrice || '', // NEW
           category: data.category,
-          stock: data.stock
+          stock: data.stock,
+          materials: data.materials || '', // NEW
+          processingTime: data.processingTime || '', // NEW
+          sku: data.sku || '' // NEW
         });
         setLoading(false);
       } catch (error) {
@@ -36,13 +39,8 @@ function EditProduct() {
     fetchProduct();
   }, [id]);
 
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
-
-  const handleFileChange = (e) => {
-    setImageFile(e.target.files[0]);
-  };
+  const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
+  const handleFileChange = (e) => setImageFiles(e.target.files);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -51,16 +49,22 @@ function EditProduct() {
       data.append('name', formData.name);
       data.append('description', formData.description);
       data.append('price', formData.price);
+      data.append('salePrice', formData.salePrice); // NEW
       data.append('category', formData.category);
       data.append('stock', formData.stock);
-      if (imageFile) {
-        data.append('image', imageFile);
+      data.append('materials', formData.materials); // NEW
+      data.append('processingTime', formData.processingTime); // NEW
+      data.append('sku', formData.sku); // NEW
+      
+      for (let i = 0; i < imageFiles.length; i++) {
+        data.append('images', imageFiles[i]);
       }
 
       await updateProduct(id, data);
       toast.success('Product updated successfully!');
-      navigate('/seller/my-products');
+      navigate('/profile');
     } catch (error) {
+      console.error(error);
       toast.error('Failed to update product.');
     }
   };
@@ -68,20 +72,49 @@ function EditProduct() {
   if (loading) return <div className="spinner"></div>;
   if (!product) return <p style={{ textAlign: 'center' }}>Product not found.</p>;
 
+  let currentImgSrc = 'https://placehold.co/400x300?text=No+Image';
+  if (product.images && product.images.length > 0) {
+    const firstImg = product.images[0];
+    currentImgSrc = firstImg.startsWith('/images') ? `http://${window.location.hostname}:3000${firstImg}` : firstImg;
+  }
+
   return (
     <div style={styles.container}>
       <h1 style={styles.title}>Edit Product</h1>
       
       <form style={styles.form} onSubmit={handleSubmit}>
         <input style={styles.input} type="text" name="name" placeholder="Product Name" value={formData.name} onChange={handleChange} required />
-        <textarea style={styles.textarea} name="description" placeholder="Product Description" value={formData.description} onChange={handleChange} required />
-        <input style={styles.input} type="number" name="price" placeholder="Price" value={formData.price} onChange={handleChange} required />
-        <input style={styles.input} type="text" name="category" placeholder="Category" value={formData.category} onChange={handleChange} required />
-        <input style={styles.input} type="number" name="stock" placeholder="Stock Quantity" value={formData.stock} onChange={handleChange} required />
+        <textarea style={{...styles.input, ...styles.textarea}} name="description" placeholder="Product Description" value={formData.description} onChange={handleChange} required />
         
+        <div style={styles.row}>
+          <input style={styles.input} type="number" name="price" placeholder="Price" value={formData.price} onChange={handleChange} required />
+          <input style={styles.input} type="number" name="salePrice" placeholder="Sale Price (Optional)" value={formData.salePrice} onChange={handleChange} />
+        </div>
+
+        <div style={styles.row}>
+          <input style={styles.input} type="text" name="category" placeholder="Category" value={formData.category} onChange={handleChange} required />
+          <input style={styles.input} type="number" name="stock" placeholder="Stock Quantity" value={formData.stock} onChange={handleChange} required />
+        </div>
+
+        <div style={styles.row}>
+          <input style={styles.input} type="text" name="materials" placeholder="Materials" value={formData.materials} onChange={handleChange} />
+          <input style={styles.input} type="text" name="processingTime" placeholder="Processing Time" value={formData.processingTime} onChange={handleChange} />
+        </div>
+
+        <input style={styles.input} type="text" name="sku" placeholder="SKU (Optional)" value={formData.sku} onChange={handleChange} />
+        
+        <div style={styles.currentImageBox}>
+          <p style={styles.fileLabel}>Current Image:</p>
+          <img src={currentImgSrc} alt="Current" style={styles.currentImage} />
+        </div>
+
         <div>
-          <label style={styles.fileLabel}>Change Image (Leave blank to keep current):</label>
-          <input id="fileInput" style={styles.fileInput} type="file" accept="image/*" onChange={handleFileChange} />
+          <label style={styles.fileLabel}>Change Images (Leave blank to keep current):</label>
+          <div style={styles.fileInputContainer}>
+            <input id="fileInput" style={{ display: 'none' }} type="file" accept="image/*" multiple onChange={handleFileChange} />
+            <label htmlFor="fileInput" style={styles.customFileBtn}>📁 Choose Images</label>
+            <span style={styles.fileNameText}>{imageFiles.length > 0 ? `${imageFiles.length} file(s) selected` : 'No files chosen'}</span>
+          </div>
         </div>
 
         <button style={styles.button} type="submit">Update Product</button>
@@ -93,12 +126,17 @@ function EditProduct() {
 const styles = {
   container: { maxWidth: '600px', margin: '40px auto', padding: '20px' },
   title: { color: '#8b5a2b', textAlign: 'center', marginBottom: '30px' },
-  form: { display: 'flex', flexDirection: 'column', gap: '15px', backgroundColor: '#fff', padding: '30px', borderRadius: '8px', boxShadow: '0 2px 5px rgba(0,0,0,0.1)' },
-  input: { padding: '12px', fontSize: '16px', border: '1px solid #ccc', borderRadius: '5px' },
-  textarea: { padding: '12px', fontSize: '16px', border: '1px solid #ccc', borderRadius: '5px', minHeight: '100px' },
-  fileLabel: { fontSize: '14px', fontWeight: 'bold', color: '#333', marginBottom: '5px', display: 'block' },
-  fileInput: { fontSize: '14px', width: '100%' },
-  button: { padding: '12px', backgroundColor: '#8b5a2b', color: 'white', border: 'none', borderRadius: '5px', fontSize: '18px', cursor: 'pointer', marginTop: '10px' }
+  form: { display: 'flex', flexDirection: 'column', gap: '20px', backgroundColor: '#FDFBF7', padding: '40px', borderRadius: '12px', boxShadow: '0 4px 6px rgba(0,0,0,0.05)', border: '1px solid #eee' },
+  row: { display: 'flex', gap: '15px' },
+  input: { flexGrow: 1, height: '48px', padding: '0 16px', fontSize: '16px', border: '1px solid #E0E0E0', borderRadius: '8px', outline: 'none', fontFamily: 'inherit', boxSizing: 'border-box' },
+  textarea: { height: 'auto', padding: '12px 16px', minHeight: '120px', lineHeight: '1.6', resize: 'vertical' },
+  currentImageBox: { display: 'flex', flexDirection: 'column', gap: '10px' },
+  currentImage: { width: '150px', height: '150px', objectFit: 'cover', borderRadius: '8px', border: '1px solid #E0E0E0' },
+  fileLabel: { fontSize: '14px', fontWeight: '600', color: '#333', marginBottom: '5px', display: 'block' },
+  fileInputContainer: { display: 'flex', alignItems: 'center', gap: '15px', backgroundColor: '#f9f9f9', padding: '20px', borderRadius: '8px', border: '1px solid #E0E0E0' },
+  customFileBtn: { padding: '10px 20px', backgroundColor: '#333', color: 'white', borderRadius: '8px', cursor: 'pointer', fontSize: '14px', fontWeight: '600' },
+  fileNameText: { fontSize: '14px', color: '#666', fontStyle: 'italic' },
+  button: { height: '48px', backgroundColor: '#8b5a2b', color: 'white', border: 'none', borderRadius: '8px', fontSize: '18px', cursor: 'pointer', fontWeight: '600' }
 };
 
 export default EditProduct;

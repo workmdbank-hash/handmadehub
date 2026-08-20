@@ -1,0 +1,236 @@
+{\rtf1\fbidis\ansi\deff0\nouicompat{\fonttbl{\f0\fnil\fcharset0 Calibri;}{\f1\fnil Calibri;}{\f2\fnil\fcharset1 Segoe UI Symbol;}{\f3\fnil\fcharset1 Segoe UI Emoji;}}
+{\colortbl ;\red0\green0\blue255;}
+{\*\generator Riched20 10.0.19041}\viewkind4\uc1 
+\pard\sa200\sl276\slmult1\f0\fs22\lang9 import React, \{ useState, useEffect \} from 'react';\par
+import \{ Link \} from 'react-router-dom';\par
+import \{ updateProfileImage, getSellerProfile, deleteProduct \} from '../services/api';\par
+import \{ toast \} from 'react-toastify';\par
+\par
+function Profile() \{\par
+  const [name, setName] = useState(localStorage.getItem('name') || '');\par
+  const [email, setEmail] = useState(localStorage.getItem('email') || '');\par
+  const [profileImage, setProfileImage] = useState(localStorage.getItem('profileImage'));\par
+  const [imageFile, setImageFile] = useState(null);\par
+\par
+  const role = localStorage.getItem('role');\par
+  const userId = localStorage.getItem('userId');\par
+  const [sellerData, setSellerData] = useState(null);\par
+\par
+  const handleFileChange = (e) => \{\par
+    setImageFile(e.target.files[0]);\par
+  \};\par
+\par
+  const handleUpload = async (e) => \{\par
+    e.preventDefault();\par
+    if (!imageFile) \{\par
+      toast.error('Please choose an image first.');\par
+      return;\par
+    \}\par
+\par
+    try \{\par
+      const formData = new FormData();\par
+      formData.append('image', imageFile);\par
+      const data = await updateProfileImage(formData);\par
+      \par
+      localStorage.setItem('profileImage', data.profileImage);\par
+      setProfileImage(data.profileImage);\par
+      setImageFile(null);\par
+      document.getElementById('fileInput').value = '';\par
+      toast.success('Profile photo updated!');\par
+    \} catch (error) \{\par
+      toast.error('Failed to upload photo.');\par
+    \}\par
+  \};\par
+\par
+  useEffect(() => \{\par
+    if (role === 'SELLER' || role === 'ADMIN') \{\par
+      const fetchSellerData = async () => \{\par
+        try \{\par
+          const data = await getSellerProfile(userId);\par
+          setSellerData(data);\par
+        \} catch (error) \{\par
+          console.error("Failed to load seller products");\par
+        \}\par
+      \};\par
+      fetchSellerData();\par
+    \}\par
+  \}, [role, userId]);\par
+\par
+  const handleDeleteProduct = async (id) => \{\par
+    if (window.confirm('Are you sure you want to delete this product?')) \{\par
+      try \{\par
+        await deleteProduct(id);\par
+        toast.success('Product deleted!');\par
+        setSellerData(\{ ...sellerData, products: sellerData.products.filter(p => p.id !== id) \});\par
+      \} catch (error) \{\par
+        toast.error('Failed to delete product.');\par
+      \}\par
+    \}\par
+  \};\par
+\par
+  return (\par
+    <div style=\{styles.container\}>\par
+      <h1 style=\{styles.title\}>My Profile</h1>\par
+      \par
+      \{/* UPPER SECTION: User Info */\}\par
+      <div style=\{styles.card\}>\par
+        <div style=\{styles.imageContainer\}>\par
+          \{profileImage && profileImage !== 'null' ? (\par
+            <img \par
+              src=\{profileImage.startsWith('/images') ? `http://$\{window.location.hostname\}:3000$\{profileImage\}` : profileImage\} \par
+              alt="Profile" \par
+              style=\{styles.image\}\par
+            />\par
+          ) : (\par
+            <div style=\{styles.placeholderImage\}>\par
+              \{name.charAt(0).toUpperCase()\}\par
+            </div>\par
+          )\}\par
+        </div>\par
+\par
+        <div style=\{styles.infoBox\}>\par
+          <h2 style=\{styles.name\}>\{name\}</h2>\par
+          <p style=\{styles.email\}>\{email\}</p>\par
+          <span style=\{styles.roleBadge\}>\{role\}</span>\par
+          \par
+          <form onSubmit=\{handleUpload\} style=\{styles.form\}>\par
+            <label style=\{styles.fileLabel\}>Change Profile Picture:</label>\par
+            <div style=\{styles.fileInputContainer\}>\par
+              <input \par
+                id="fileInput"\par
+                type="file" \par
+                accept="image/*"\par
+                onChange=\{handleFileChange\} \par
+                style=\{\{ display: 'none' \}\}\par
+              />\par
+              <label htmlFor="fileInput" style=\{styles.customFileBtn\}>\par
+\f1                 \f2\u-10179?\u-9023?\f1  \f0 Choose Image\par
+              </label>\par
+              <span style=\{styles.fileNameText\}>\par
+                \{imageFile ? imageFile.name : 'No file chosen'\}\par
+              </span>\par
+            </div>\par
+            <button type="submit" style=\{styles.uploadBtn\}>Upload Photo</button>\par
+          </form>\par
+        </div>\par
+      </div>\par
+\par
+      \{/* LOWER SECTION: My Products (Only for Sellers/Admins) */\}\par
+      \{(role === 'SELLER' || role === 'ADMIN') && (\par
+        <div style=\{styles.productsSection\}>\par
+          <div style=\{styles.productsHeader\}>\par
+            <h2 style=\{styles.sectionTitle\}>My Products</h2>\par
+            <Link to="/seller" style=\{styles.addBtn\}>+ Add New Product</Link>\par
+          </div>\par
+          \par
+          \{!sellerData ? (\par
+            <div className="spinner"></div>\par
+          ) : sellerData.products.length === 0 ? (\par
+            <p style=\{\{ textAlign: 'center', color: '#666' \}\}>You haven't listed any products yet.</p>\par
+          ) : (\par
+            <div style=\{styles.productList\}>\par
+              \{sellerData.products.map((product) => \{\par
+                const mainImg = product.images && product.images.length > 0 \par
+                  ? product.images[0] \par
+                  : '{{\field{\*\fldinst{HYPERLINK https://placehold.co/400x300/eee/ccc?text=No+Image }}{\fldrslt{https://placehold.co/400x300/eee/ccc?text=No+Image\ul0\cf0}}}}\f0\fs22 ';\par
+                const imgSrc = mainImg.startsWith('/images') ? `http://$\{window.location.hostname\}:3000$\{mainImg\}` : mainImg;\par
+\par
+                return (\par
+                  // NEW: Stacked Card Layout\par
+                  <div key=\{product.id\} style=\{styles.productItem\}>\par
+                    <img src=\{imgSrc\} alt=\{product.name\} style=\{styles.productImage\} />\par
+                    \par
+                    <div style=\{styles.productInfo\}>\par
+                      <h4 style=\{styles.productName\}>\{product.name\}</h4>\par
+                      <p style=\{styles.productPrice\}>\{product.price\} Ks</p>\par
+                      <span style=\{styles.stockBadge\}>Stock: \{product.stock\}</span>\par
+                    </div>\par
+\par
+                    <div style=\{styles.productActions\}>\par
+                      <Link to=\{`/seller/edit/$\{product.id\}`\}>\par
+                        <button style=\{styles.editBtn\}>\f3\u9999?\u-497?\f1  \f0 Edit</button>\par
+                      </Link>\par
+                      <button style=\{styles.deleteBtn\} onClick=\{() => handleDeleteProduct(product.id)\}>\f3\u-10179?\u-8751?\u-497?\f1  \f0 Delete</button>\par
+                    </div>\par
+                  </div>\par
+                );\par
+              \})\}\par
+            </div>\par
+          )\}\par
+        </div>\par
+      )\}\par
+    </div>\par
+  );\par
+\}\par
+\par
+const styles = \{\par
+  container: \{ maxWidth: '1200px', margin: '0 auto', padding: '40px 20px' \},\par
+  title: \{ color: '#8b5a2b', textAlign: 'center', marginBottom: '3rem', fontSize: '32px' \},\par
+  \par
+  // User Info Card\par
+  card: \{ \par
+    backgroundColor: '#fcfcfc', \par
+    border: 'none', \par
+    borderRadius: '12px', \par
+    padding: '30px', \par
+    boxShadow: '0 4px 6px rgba(0,0,0,0.05)', \par
+    display: 'flex', \par
+    gap: '40px', \par
+    alignItems: 'center', \par
+    marginBottom: '40px', \par
+    flexWrap: 'wrap' \par
+  \},\par
+  imageContainer: \{ flexShrink: 0 \},\par
+  image: \{ width: '150px', height: '150px', borderRadius: '50%', objectFit: 'cover', border: '4px solid #8b5a2b' \},\par
+  placeholderImage: \{ width: '150px', height: '150px', borderRadius: '50%', backgroundColor: '#eaeaea', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '60px', color: '#8b5a2b', fontWeight: 'bold' \},\par
+  infoBox: \{ flexGrow: 1, minWidth: 250 \},\par
+  name: \{ margin: '0 0 5px 0', fontSize: '28px', color: '#1a1a1a' \},\par
+  email: \{ margin: '0 0 15px 0', color: '#666', fontSize: '16px' \},\par
+  roleBadge: \{ display: 'inline-block', padding: '6px 16px', backgroundColor: '#e0e0e0', color: '#333', borderRadius: '16px', fontSize: '12px', fontWeight: 'bold', marginBottom: '20px' \},\par
+  \par
+  // Upload Form\par
+  form: \{ display: 'flex', flexDirection: 'column', gap: '15px', marginTop: '10px' \},\par
+  fileLabel: \{ fontSize: '14px', fontWeight: '600', color: '#555' \},\par
+  fileInputContainer: \{ display: 'flex', alignItems: 'center', gap: '15px', backgroundColor: '#f9f9f9', padding: '15px', borderRadius: '8px', border: '1px solid #E0E0E0' \},\par
+  customFileBtn: \{ padding: '10px 20px', backgroundColor: '#333', color: 'white', borderRadius: '8px', cursor: 'pointer', fontSize: '14px', fontWeight: '600' \},\par
+  fileNameText: \{ fontSize: '14px', color: '#666', fontStyle: 'italic' \},\par
+  uploadBtn: \{ padding: '10px 20px', backgroundColor: '#8b5a2b', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '14px', fontWeight: '600', width: 'fit-content' \},\par
+\par
+  // Products Section\par
+  productsSection: \{ \par
+    backgroundColor: '#fcfcfc', \par
+    border: 'none', \par
+    borderRadius: '12px', \par
+    padding: '30px', \par
+    boxShadow: '0 4px 6px rgba(0,0,0,0.05)',\par
+    overflow: 'hidden'\par
+  \},\par
+  productsHeader: \{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' \},\par
+  sectionTitle: \{ color: '#8b5a2b', margin: 0, fontSize: '24px' \},\par
+  addBtn: \{ padding: '10px 20px', backgroundColor: '#1a1a1a', color: 'white', textDecoration: 'none', borderRadius: '8px', fontWeight: '600', fontSize: '14px' \},\par
+  \par
+  // NEW: Stacked Card List Layout\par
+  productList: \{ display: 'flex', flexDirection: 'column', gap: '15px' \},\par
+  productItem: \{ \par
+    display: 'flex', \par
+    alignItems: 'center', \par
+    gap: '15px', \par
+    padding: '15px', \par
+    backgroundColor: '#f9f9f9', \par
+    borderRadius: '8px', \par
+    border: '1px solid #eee',\par
+    flexWrap: 'wrap' // Allows it to stack gracefully on tiny screens\par
+  \},\par
+  productImage: \{ width: '60px', height: '60px', objectFit: 'cover', borderRadius: '8px', flexShrink: 0 \},\par
+  productInfo: \{ flexGrow: 1, minWidth: '150px' \},\par
+  productName: \{ margin: '0 0 5px 0', fontSize: '16px', color: '#1a1a1a', fontWeight: '600' \},\par
+  productPrice: \{ margin: '0 0 8px 0', fontSize: '15px', color: '#8b5a2b', fontWeight: '600' \},\par
+  stockBadge: \{ display: 'inline-block', padding: '4px 10px', backgroundColor: '#e0e0e0', color: '#333', borderRadius: '12px', fontSize: '11px', fontWeight: 'bold' \},\par
+  productActions: \{ display: 'flex', gap: '8px', flexShrink: 0 \},\par
+  editBtn: \{ padding: '8px 12px', backgroundColor: '#1a1a1a', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', fontWeight: '600' \},\par
+  deleteBtn: \{ padding: '8px 12px', backgroundColor: 'transparent', color: 'red', border: '1px solid red', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', fontWeight: '600' \}\par
+\};\par
+\par
+export default Profile;\par
+}
+ 

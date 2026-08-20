@@ -8,46 +8,68 @@ datasource db {
 }
 
 model User {
-  id           Int      @id @default(autoincrement())
-  email        String   @unique
-  password     String
-  name         String
-  role         String   @default("CUSTOMER")
-  isApproved   Boolean  @default(true) // NEW: Sellers will be false
-  createdAt    DateTime @default(now())
-  profileImage String?  
-  products     Product[]
-  orders       Order[]
-  reviews      Review[]
-  wishlist     Wishlist[]
-  couponUsage  UserCouponUsage[]
+  id                  Int               @id @default(autoincrement())
+  phone        String?
+  nrc           String?
+  shopAddress   String?
+  country      String?
+  city         String?
+  email               String            @unique
+  password            String
+  name                String
+  role                String            @default("CUSTOMER")
+  createdAt           DateTime          @default(now())
+  profileImage        String?
+  isApproved          Boolean           @default(true)
+  buyerConversations  Conversation[]    @relation("BuyerConversations")
+  sellerConversations Conversation[]    @relation("SellerConversations")
+  sentMessages        Message[]         @relation("SentMessages")
+  notifications       Notification[]
+  orders              Order[]
+  products            Product[]
+  reviews             Review[]
+  buyerReviews        SellerReview[]    @relation("BuyerReviews")
+  sellerReviews       SellerReview[]    @relation("SellerReviews")
+  couponUsage         UserCouponUsage[]
+  wishlist            Wishlist[]
+  shop             SellerShop?
+  balance          SellerBalance?
+  transactions     SellerTransaction[]
+  withdrawals      SellerWithdrawal[]
 }
 
 model Product {
-  id          Int      @id @default(autoincrement())
-  name        String
-  description String
-  price       Float
-  images      String[] // NEW: Array of image URLs!
-  category    String   @default("General")
-  stock       Int      @default(0)
-  createdAt   DateTime @default(now())
-  userId      Int
-  user        User     @relation(fields: [userId], references: [id])
-  orderItems  OrderItem[]
-  reviews     Review[]
-  wishlist    Wishlist[]
+  id             Int      @id @default(autoincrement())
+  name           String
+  description    String
+  price          Float
+  salePrice      Float?   // NEW: For discounts
+  images         String[]
+  category       String   @default("General")
+  stock          Int      @default(0)
+  materials      String?  // NEW: e.g., "Cotton, Wood, Leather"
+  processingTime String?  // NEW: e.g., "3-5 business days"
+  sku            String?  // NEW: Stock Keeping Unit
+  createdAt      DateTime @default(now())
+  userId         Int
+  user           User     @relation(fields: [userId], references: [id])
+  orderItems     OrderItem[]
+  reviews        Review[]
+  wishlist       Wishlist[]
+  conversations  Conversation[]
 }
 
 model Order {
-  id        Int      @id @default(autoincrement())
-  total     Float
-  status    String   @default("PENDING")
-  createdAt DateTime @default(now())
-  userId    Int
-  user      User     @relation(fields: [userId], references: [id])
-  items     OrderItem[]
+  id              Int           @id @default(autoincrement())
+  total           Float
+  status          String        @default("PENDING")
+  createdAt       DateTime      @default(now())
+  userId          Int
   shippingAddress String?
+  user            User          @relation(fields: [userId], references: [id])
+  items           OrderItem[]
+  sellerReview    SellerReview?
+  sellerTransactions SellerTransaction[]
 }
 
 model OrderItem {
@@ -55,55 +77,159 @@ model OrderItem {
   quantity  Int
   price     Float
   orderId   Int
-  order     Order   @relation(fields: [orderId], references: [id])
   productId Int
+  order     Order   @relation(fields: [orderId], references: [id])
   product   Product @relation(fields: [productId], references: [id])
+  review    Review?
 }
 
 model Review {
+  id          Int       @id @default(autoincrement())
+  rating      Int
+  comment     String
+  createdAt   DateTime  @default(now())
+  userId      Int
+  productId   Int
+  orderItemId Int       @unique
+  orderItem   OrderItem @relation(fields: [orderItemId], references: [id])
+  product     Product   @relation(fields: [productId], references: [id])
+  user        User      @relation(fields: [userId], references: [id])
+}
+
+model Wishlist {
+  id        Int     @id @default(autoincrement())
+  userId    Int
+  productId Int
+  product   Product @relation(fields: [productId], references: [id])
+  user      User    @relation(fields: [userId], references: [id])
+
+  @@unique([userId, productId])
+}
+
+model Coupon {
+  id              Int               @id @default(autoincrement())
+  code            String            @unique
+  discountPercent Float
+  isActive        Boolean           @default(true)
+  createdAt       DateTime          @default(now())
+  timesUsed       Int               @default(0)
+  usageLimit      Int?
+  userUsage       UserCouponUsage[]
+}
+
+model UserCouponUsage {
+  id        Int    @id @default(autoincrement())
+  userId    Int
+  couponId  Int
+  timesUsed Int    @default(1)
+  coupon    Coupon @relation(fields: [couponId], references: [id])
+  user      User   @relation(fields: [userId], references: [id])
+
+  @@unique([userId, couponId])
+}
+
+model SellerReview {
   id        Int      @id @default(autoincrement())
   rating    Int
   comment   String
   createdAt DateTime @default(now())
+  sellerId  Int
+  buyerId   Int
+  orderId   Int      @unique
+  buyer     User     @relation("BuyerReviews", fields: [buyerId], references: [id])
+  order     Order    @relation(fields: [orderId], references: [id])
+  seller    User     @relation("SellerReviews", fields: [sellerId], references: [id])
+}
+
+model Conversation {
+  id        Int       @id @default(autoincrement())
+  buyerId   Int
+  sellerId  Int
+  productId Int
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  buyer     User      @relation("BuyerConversations", fields: [buyerId], references: [id])
+  product   Product   @relation(fields: [productId], references: [id])
+  seller    User      @relation("SellerConversations", fields: [sellerId], references: [id])
+  messages  Message[]
+}
+
+model Message {
+  id             Int          @id @default(autoincrement())
+  conversationId Int
+  senderId       Int
+  message        String
+  isRead         Boolean      @default(false)
+  createdAt      DateTime     @default(now())
+  conversation   Conversation @relation(fields: [conversationId], references: [id])
+  sender         User         @relation("SentMessages", fields: [senderId], references: [id])
+}
+
+model Notification {
+  id        Int      @id @default(autoincrement())
   userId    Int
+  message   String
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+  link      String   @default("/")
+  type      String   @default("GENERAL")
   user      User     @relation(fields: [userId], references: [id])
-  productId Int
-  product   Product  @relation(fields: [productId], references: [id])
 }
 
-// ADD THIS NEW MODEL:
-model Wishlist {
-  id        Int     @id @default(autoincrement())
-  userId    Int
-  user      User    @relation(fields: [userId], references: [id])
-  productId Int
-  product   Product @relation(fields: [productId], references: [id])
+// ==========================================
+// ETSY-STYLE SELLER MARKETPLACE MODELS
+// ==========================================
 
-  // A user can only have a product in their wishlist once
-  @@unique([userId, productId])
+model SellerShop {
+  id              Int      @id @default(autoincrement())
+  sellerId        Int      @unique
+  category       String?
+  seller          User     @relation(fields: [sellerId], references: [id])
+  name            String
+  slug            String   @unique
+  logo            String?
+  banner          String?
+  description     String?  @db.Text
+  about           String?  @db.Text
+  shippingPolicy  String?  @db.Text
+  returnPolicy    String?  @db.Text
+  processingTime  String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 }
 
-// ADD THIS NEW MODEL:
-model Coupon {
-  id               Int      @id @default(autoincrement())
-  code             String   @unique
-  discountPercent  Float
-  isActive         Boolean  @default(true)
-  usageLimit       Int?     // NEW: Max times it can be used (null = unlimited)
-  timesUsed        Int      @default(0) // NEW: How many times it has been used
-  createdAt        DateTime @default(now())
-  userUsage   UserCouponUsage[] // NEW
+model SellerBalance {
+  id              Int      @id @default(autoincrement())
+  sellerId        Int      @unique
+  seller          User     @relation(fields: [sellerId], references: [id])
+  available       Float    @default(0)
+  pending         Float    @default(0)
+  withdrawn       Float    @default(0)
+  commissionRate  Float    @default(5) // Default 5% platform commission
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 }
 
-// NEW: Tracks how many times a specific user used a coupon
-model UserCouponUsage {
-  id        Int     @id @default(autoincrement())
-  userId    Int
-  user      User    @relation(fields: [userId], references: [id])
-  couponId  Int
-  coupon    Coupon  @relation(fields: [couponId], references: [id])
-  timesUsed Int     @default(1)
+model SellerTransaction {
+  id              Int      @id @default(autoincrement())
+  sellerId        Int
+  seller          User     @relation(fields: [sellerId], references: [id])
+  orderId         Int?
+  order           Order?   @relation(fields: [orderId], references: [id])
+  type            String   // "SALE", "REFUND", "WITHDRAWAL"
+  amount          Float
+  commission      Float    @default(0)
+  netAmount       Float    @default(0)
+  status          String   @default("COMPLETED")
+  createdAt       DateTime @default(now())
+}
 
-  // This ensures a user can only have one usage record per coupon
-  @@unique([userId, couponId])
+model SellerWithdrawal {
+  id              Int      @id @default(autoincrement())
+  sellerId        Int
+  seller          User     @relation(fields: [sellerId], references: [id])
+  amount          Float
+  status          String   @default("PENDING") // PENDING, APPROVED, REJECTED, COMPLETED
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 }

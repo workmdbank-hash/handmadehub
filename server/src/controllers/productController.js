@@ -29,7 +29,15 @@ export const getProducts = async (req, res) => {
 
     const products = await prisma.product.findMany({
       where: whereClause,
-      include: { user: true },
+      include: { 
+        user: {
+          select: {
+            id: true,
+            name: true,
+            shop: { select: { slug: true, name: true } } // NEW: Added name
+          }
+        }
+      },
       orderBy: orderBy
     });
     
@@ -42,14 +50,15 @@ export const getProducts = async (req, res) => {
 // GET ALL UNIQUE CATEGORIES
 export const getCategories = async (req, res) => {
   try {
-    const categories = await prisma.product.groupBy({
-      by: ['category'],
-      _count: { category: true },
+    const products = await prisma.product.findMany({
+      select: { category: true }
     });
     
-    const result = categories.map(c => c.category);
-    res.status(200).json(result);
+    const uniqueCategories = [...new Set(products.map(p => p.category))];
+    
+    res.status(200).json(uniqueCategories);
   } catch (error) {
+    console.log("THE EXACT ERROR IS:", error);
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 };
@@ -62,7 +71,13 @@ export const getProductById = async (req, res) => {
     const product = await prisma.product.findUnique({
       where: { id: productId },
       include: { 
-        user: true,
+        user: {
+          select: {
+            id: true,
+            name: true,
+            shop: { select: { slug: true, name: true } } // NEW: Added name
+          }
+        },
         reviews: { include: { user: true } } 
       }
     });
@@ -80,15 +95,14 @@ export const getProductById = async (req, res) => {
 // CREATE A PRODUCT
 export const createProduct = async (req, res) => {
   try {
-    const { name, description, price, category, stock } = req.body;
+    const { name, description, price, salePrice, category, stock, materials, processingTime, sku } = req.body;
     const userId = req.userId; 
 
-    // NEW: Map over req.files to create an array of URLs
     let images = [];
     if (req.files && req.files.length > 0) {
       images = req.files.map(file => `/images/${file.filename}`);
     } else {
-      images = ['https://placehold.co/400x300?text=No+Image']; // Default placeholder
+      images = ['https://placehold.co/400x300?text=No+Image'];
     }
 
     const product = await prisma.product.create({
@@ -96,9 +110,13 @@ export const createProduct = async (req, res) => {
         name,
         description,
         price: parseFloat(price),
-        images, // NEW: Save the array of URLs
+        salePrice: salePrice ? parseFloat(salePrice) : null, // FIXED
+        images,
         category, 
         stock: parseInt(stock) || 0,
+        materials, 
+        processingTime, 
+        sku, // FIXED (Added the missing comma)
         userId
       }
     });
@@ -114,7 +132,7 @@ export const createProduct = async (req, res) => {
 export const updateProduct = async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, description, price, category, stock } = req.body;
+    const { name, description, price, salePrice, category, stock, materials, processingTime, sku } = req.body;
     const userId = req.userId;
 
     const product = await prisma.product.findUnique({ where: { id: parseInt(id) } });
@@ -124,13 +142,11 @@ export const updateProduct = async (req, res) => {
       return res.status(403).json({ message: 'Not authorized to edit this product' });
     }
 
-    // NEW: Handle images. If new files uploaded, replace. Otherwise, keep old ones.
     let images = product.images;
     if (req.files && req.files.length > 0) {
       images = req.files.map(file => `/images/${file.filename}`);
     }
     
-    // If the frontend sent a JSON array of existing images (for deleting one), respect it
     if (req.body.images) {
       try {
         images = JSON.parse(req.body.images);
@@ -145,8 +161,12 @@ export const updateProduct = async (req, res) => {
         name,
         description,
         price: parseFloat(price),
+        salePrice: salePrice ? parseFloat(salePrice) : null, // FIXED
         category,
         stock: parseInt(stock) || 0,
+        materials, 
+        processingTime, 
+        sku, // FIXED (Added the missing comma)
         images
       }
     });

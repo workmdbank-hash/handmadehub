@@ -46,7 +46,18 @@ function CartDrawer() {
           ) : (
             cartItems.map((item) => (
               <div key={item.id} style={styles.item}>
-                             <img src={item.images[0].startsWith('/images') ? `https://handmadehub-6c0t.onrender.com${item.images[0]}` : item.images[0]} alt={item.name} style={styles.itemImage} />
+                <img 
+                  src={
+                    item.images && Array.isArray(item.images) && item.images.length > 0
+                      ? (item.images[0].startsWith('/images') ? `http://${window.location.hostname}:3000${item.images[0]}` : item.images[0])
+                      : (item.imageUrl && typeof item.imageUrl === 'string'
+                          ? (item.imageUrl.startsWith('/images') ? `http://${window.location.hostname}:3000${item.imageUrl}` : item.imageUrl)
+                          : 'https://placehold.co/60x60?text=No+Img'
+                        )
+                  } 
+                  alt={item.name} 
+                  style={styles.itemImage} 
+                />
                 <div style={styles.itemInfo}>
                   <h4 style={styles.itemName}>{item.name}</h4>
                   <div style={styles.qtyContainer}>
@@ -105,7 +116,7 @@ function CartDrawer() {
 
 const styles = {
   overlay: { position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 200 },
-  drawer: { position: 'fixed', top: 0, right: '-400px', width: '350px', height: '100vh', backgroundColor: '#fff', boxShadow: '-2px 0 10px rgba(0,0,0,0.1)', transition: 'right 0.3s ease-in-out', display: 'flex', flexDirection: 'column', zIndex: 300 },
+  drawer: { position: 'fixed', top: 0, right: '-400px', width: '350px', height: '100vh', backgroundColor: '#FDFBF7', boxShadow: '-2px 0 10px rgba(0,0,0,0.1)', transition: 'right 0.3s ease-in-out', display: 'flex', flexDirection: 'column', zIndex: 300 },
   header: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '20px', borderBottom: '1px solid #eaeaea' },
   closeBtn: { background: 'none', border: 'none', fontSize: '20px', cursor: 'pointer', color: '#333' },
   itemsList: { flexGrow: 1, overflowY: 'auto', padding: '20px' },
@@ -114,7 +125,7 @@ const styles = {
   itemInfo: { display: 'flex', flexDirection: 'column', flexGrow: 1 },
   itemName: { margin: '0 0 5px 0', fontSize: '16px', color: '#333' },
   qtyContainer: { display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '5px' },
-  qtyBtn: { width: '25px', height: '25px', border: '1px solid #ccc', backgroundColor: '#fff', cursor: 'pointer', borderRadius: '3px', fontSize: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center' },
+  qtyBtn: { width: '25px', height: '25px', border: '1px solid #ccc', backgroundColor: '#FDFBF7', cursor: 'pointer', borderRadius: '3px', fontSize: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center' },
   qtyText: { fontSize: '14px', color: '#333' },
   removeBtn: { background: 'none', border: 'none', color: 'red', cursor: 'pointer', padding: 0, fontSize: '13px', textAlign: 'left', width: 'fit-content' },
   itemPriceBox: { display: 'flex', alignItems: 'flex-start' },

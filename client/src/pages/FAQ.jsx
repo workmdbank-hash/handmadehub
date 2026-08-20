@@ -27,7 +27,7 @@ function FAQ() {
 const styles = {
   container: { maxWidth: '800px', margin: '40px auto', padding: '20px' },
   title: { color: '#8b5a2b', textAlign: 'center', marginBottom: '30px' },
-  qaBox: { backgroundColor: '#fff', padding: '20px', borderRadius: '8px', marginBottom: '20px', boxShadow: '0 2px 5px rgba(0,0,0,0.05)' },
+  qaBox: { backgroundColor: '#FDFBF7', padding: '20px', borderRadius: '8px', marginBottom: '20px', boxShadow: '0 2px 5px rgba(0,0,0,0.05)' },
   question: { color: '#333', margin: '0 0 10px 0' },
   answer: { color: '#666', margin: 0, lineHeight: '1.6' }
 };

@@ -5,7 +5,10 @@ import prisma from '../prisma.js';
 export const getAllUsers = async (req, res) => {
   try {
     const users = await prisma.user.findMany({
-      select: { id: true, name: true, email: true, role: true, createdAt: true, isApproved: true } // NEW: isApproved
+      select: { 
+        id: true, name: true, email: true, role: true, createdAt: true, isApproved: true,
+        phone: true, country: true, city: true, nrc: true, shopAddress: true, shop: true // NEW
+      }
     });
     res.status(200).json(users);
   } catch (error) {
@@ -112,6 +115,69 @@ export const updateSellerApproval = async (req, res) => {
 
     res.status(200).json({ message: 'Seller approval updated!', user: updatedUser });
   } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};
+
+// GET ALL WITHDRAWALS (Admin)
+export const getWithdrawals = async (req, res) => {
+  try {
+    const withdrawals = await prisma.sellerWithdrawal.findMany({
+      include: { 
+        seller: { select: { name: true, email: true } } 
+      },
+      orderBy: { createdAt: 'desc' }
+    });
+    res.status(200).json(withdrawals);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};
+
+// UPDATE WITHDRAWAL STATUS (Admin)
+export const updateWithdrawalStatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body; // "COMPLETED" or "REJECTED"
+    const withdrawalId = parseInt(id);
+
+    const withdrawal = await prisma.sellerWithdrawal.findUnique({ where: { id: withdrawalId } });
+    if (!withdrawal) return res.status(404).json({ message: 'Withdrawal not found' });
+
+    // If Admin completes the withdrawal, update the seller's withdrawn total
+    if (status === 'COMPLETED') {
+      await prisma.sellerBalance.update({
+        where: { sellerId: withdrawal.sellerId },
+        data: { withdrawn: { increment: withdrawal.amount } }
+      });
+    } 
+    
+    // If Admin rejects the withdrawal, give the money back to available balance
+    if (status === 'REJECTED') {
+      await prisma.sellerBalance.update({
+        where: { sellerId: withdrawal.sellerId },
+        data: { available: { increment: withdrawal.amount } }
+      });
+      // Also update the transaction record
+      await prisma.sellerTransaction.updateMany({
+        where: { 
+          sellerId: withdrawal.sellerId, 
+          type: 'WITHDRAWAL', 
+          amount: withdrawal.amount, 
+          status: 'PENDING' 
+        },
+        data: { status: 'REJECTED' }
+      });
+    }
+
+    const updatedWithdrawal = await prisma.sellerWithdrawal.update({
+      where: { id: withdrawalId },
+      data: { status }
+    });
+
+    res.status(200).json(updatedWithdrawal);
+  } catch (error) {
+    console.log(error);
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 };

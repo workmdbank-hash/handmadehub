@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { getMyOrders } from '../services/api';
+import { useIsMobile } from '../hooks/useIsMobile';
 
 function MyOrders() {
+  const isMobile = useIsMobile();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -37,34 +39,44 @@ function MyOrders() {
 
   return (
     <div style={styles.container}>
-      <h1 style={styles.title}>My Orders</h1>
+      <h1 style={{...styles.title, fontSize: isMobile ? '24px' : '32px'}}>My Orders</h1>
       
       {orders.length === 0 ? (
-        <p style={{ textAlign: 'center' }}>You haven't placed any orders yet.</p>
+        <p style={{ textAlign: 'center', color: '#666' }}>You haven't placed any orders yet.</p>
       ) : (
         orders.map((order) => (
           <div key={order.id} style={styles.orderCard}>
             <div style={styles.orderHeader}>
-              <Link to={`/order/${order.id}`} style={{ textDecoration: 'none', color: '#8b5a2b', fontWeight: 'bold' }}>
+              <Link to={`/order/${order.id}`} style={styles.orderIdLink}>
                 Order ID: #{order.id} 🔗
               </Link>
-              <span>Total: {order.total} Ks</span>
+              <span style={styles.totalText}>Total: {order.total} Ks</span>
               <span style={{ ...styles.statusBadge, ...getStatusStyle(order.status) }}>
                 {order.status}
               </span>
             </div>
+            
             <div style={styles.itemsList}>
               {order.items.map((item) => {
-                // NEW: Safely get the image URL
-                const mainImg = item.product.images && item.product.images.length > 0 
-                  ? item.product.images[0] 
-                  : 'https://placehold.co/50x50?text=No+Img';
-                const imgSrc = mainImg.startsWith('/images') ? `https://handmadehub-6c0t.onrender.com${mainImg}` : mainImg;
+                // BULLETPROOF image getter
+                let imgSrc = 'https://placehold.co/50x50/eee/ccc?text=No+Img';
+                if (item.product.images && item.product.images.length > 0) {
+                  const firstImg = item.product.images[0];
+                  imgSrc = firstImg.startsWith('/images') ? `http://${window.location.hostname}:3000${firstImg}` : firstImg;
+                }
 
                 return (
                   <div key={item.id} style={styles.itemRow}>
-                    <img src={imgSrc} alt={item.product.name} style={styles.itemImage} />
-                    <div>
+                  <img 
+                    src={imgSrc} 
+                    alt={item.product?.name || 'Product'} 
+                    style={styles.itemImage} 
+                    onError={(e) => {
+                      e.target.onerror = null; 
+                      e.target.src = "https://placehold.co/50x50/eee/ccc?text=No+Img"
+                    }}
+                  />
+                    <div style={styles.itemInfo}>
                       <h4 style={styles.itemName}>{item.product.name}</h4>
                       <p style={styles.itemDetails}>Qty: {item.quantity} x {item.price} Ks</p>
                     </div>
@@ -80,16 +92,26 @@ function MyOrders() {
 }
 
 const styles = {
-  container: { maxWidth: '800px', margin: '40px auto', padding: '20px' },
-  title: { color: '#8b5a2b', textAlign: 'center', marginBottom: '30px' },
-  orderCard: { border: '1px solid #eaeaea', borderRadius: '8px', backgroundColor: '#fff', padding: '20px', marginBottom: '20px', boxShadow: '0 2px 5px rgba(0,0,0,0.05)' },
-  orderHeader: { display: 'flex', justifyContent: 'space-between', fontWeight: 'bold', paddingBottom: '10px', borderBottom: '1px solid #eee', marginBottom: '15px', color: '#333', flexWrap: 'wrap', gap: '10px' },
-  statusBadge: { padding: '5px 15px', borderRadius: '20px', fontSize: '14px', fontWeight: 'bold' },
+  container: { maxWidth: '1200px', margin: '0 auto', padding: '40px 20px' },
+  title: { color: '#8b5a2b', textAlign: 'center', marginBottom: '3rem' },
+  orderCard: { 
+    backgroundColor: '#fcfcfc', 
+    border: 'none', 
+    borderRadius: '12px', 
+    padding: '24px 30px', 
+    marginBottom: '24px', 
+    boxShadow: '0 4px 6px rgba(0,0,0,0.05)' 
+  },
+  orderHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: '20px', borderBottom: '1px solid #f0f0f0', marginBottom: '20px', flexWrap: 'wrap', gap: '15px' },
+  orderIdLink: { textDecoration: 'none', color: '#8b5a2b', fontWeight: '600', fontSize: '16px' },
+  totalText: { fontSize: '16px', fontWeight: '600', color: '#1a1a1a' },
+  statusBadge: { padding: '8px 16px', borderRadius: '16px', fontSize: '12px', fontWeight: 'bold' },
   itemsList: { display: 'flex', flexDirection: 'column', gap: '15px' },
   itemRow: { display: 'flex', alignItems: 'center', gap: '15px' },
-  itemImage: { width: '50px', height: '50px', objectFit: 'cover', borderRadius: '5px', border: '1px solid #eee' },
-  itemName: { margin: 0, fontSize: '16px', color: '#333' },
-  itemDetails: { margin: '5px 0 0 0', color: '#666', fontSize: '14px' }
+  itemImage: { width: '50px', height: '50px', objectFit: 'cover', borderRadius: '8px', flexShrink: 0 },
+  itemInfo: { display: 'flex', flexDirection: 'column' },
+  itemName: { margin: '0 0 5px 0', fontSize: '16px', color: '#1a1a1a', fontWeight: '600' },
+  itemDetails: { margin: 0, color: '#666', fontSize: '14px' }
 };
 
 export default MyOrders;

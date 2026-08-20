@@ -1,4 +1,3 @@
-// SellerOrders.jsx
 import React, { useState, useEffect } from 'react';
 import { getSellerOrders, updateOrderStatus } from '../services/api';
 import { toast } from 'react-toastify';
@@ -24,11 +23,7 @@ function SellerOrders() {
   const handleStatusChange = async (orderId, newStatus) => {
     try {
       await updateOrderStatus(orderId, newStatus);
-      
-      // Update the UI instantly so the seller sees the change
-      setOrders(orders.map(order => 
-        order.id === orderId ? { ...order, status: newStatus } : order
-      ));
+      setOrders(orders.map(order => order.id === orderId ? { ...order, status: newStatus } : order));
       toast.success('Order status updated!');
     } catch (error) {
       toast.error('Failed to update status.');
@@ -42,20 +37,25 @@ function SellerOrders() {
       <h1 style={styles.title}>My Sales</h1>
       
       {orders.length === 0 ? (
-        <p style={{ textAlign: 'center' }}>No one has bought your products yet.</p>
+        <p style={{ textAlign: 'center', color: '#666' }}>No one has bought your products yet.</p>
       ) : (
         orders.map((order) => (
           <div key={order.id} style={styles.orderCard}>
             <div style={styles.orderHeader}>
-              <span>Order #{order.id}</span>
-              <span>Customer: {order.user?.name}</span>
-              <span>Date: {new Date(order.createdAt).toLocaleDateString()}</span>
+              <div>
+                <span style={styles.label}>Order ID:</span> <span style={styles.data}>#{order.id}</span>
+              </div>
+              <div>
+                <span style={styles.label}>Customer:</span> <span style={styles.data}>{order.user?.name}</span>
+              </div>
+              <div>
+                <span style={styles.label}>Date:</span> <span style={styles.data}>{new Date(order.createdAt).toLocaleDateString()}</span>
+              </div>
               
-              {/* NEW: Status Dropdown */}
               <select 
                 value={order.status} 
                 onChange={(e) => handleStatusChange(order.id, e.target.value)}
-                style={styles.statusDropdown}
+                style={order.status === 'DELIVERED' ? styles.statusDelivered : styles.statusPending}
               >
                 <option value="PENDING">PENDING</option>
                 <option value="PROCESSING">PROCESSING</option>
@@ -66,22 +66,34 @@ function SellerOrders() {
             
             <div style={styles.body}>
               <div style={styles.shippingBox}>
-                <h3 style={styles.shippingTitle}>Ship To:</h3>
+                <h3 style={styles.boxTitle}>Ship To:</h3>
                 <p style={styles.shippingText}>{order.user?.name}</p>
                 <p style={styles.shippingText}>{order.shippingAddress}</p>
               </div>
 
               <div style={styles.itemsBox}>
-                <h3 style={styles.shippingTitle}>Items to Ship:</h3>
-                {order.items.map((item) => (
-                  <div key={item.id} style={styles.itemRow}>
-                    <img src={item.product.images[0].startsWith('/images') ? `https://handmadehub-6c0t.onrender.com${item.product.images[0]}` : item.product.images[0]} alt={item.product.name} style={styles.itemImage} />
-                    <div style={styles.itemInfo}>
-                      <h4 style={styles.itemName}>{item.product.name}</h4>
-                      <p style={styles.itemDetails}>Qty: {item.quantity} x {item.price} Ks</p>
+                <h3 style={styles.boxTitle}>Items to Ship:</h3>
+                {order.items.map((item) => {
+                  let imgSrc = 'https://placehold.co/60x60?text=No+Img';
+                  if (item.product.images && Array.isArray(item.product.images) && item.product.images.length > 0) {
+                    const firstImg = item.product.images[0];
+                    if (firstImg && typeof firstImg === 'string') {
+                      imgSrc = firstImg.startsWith('/images') ? `http://${window.location.hostname}:3000${firstImg}` : firstImg;
+                    }
+                  } else if (item.product.imageUrl && typeof item.product.imageUrl === 'string') {
+                    imgSrc = item.product.imageUrl.startsWith('/images') ? `http://${window.location.hostname}:3000${item.product.imageUrl}` : item.product.imageUrl;
+                  }
+
+                  return (
+                    <div key={item.id} style={styles.itemRow}>
+                      <img src={imgSrc} alt={item.product.name} style={styles.itemImage} />
+                      <div style={styles.itemInfo}>
+                        <h4 style={styles.itemName}>{item.product.name}</h4>
+                        <p style={styles.itemDetails}>Qty: {item.quantity} x {item.price} Ks</p>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           </div>
@@ -92,21 +104,34 @@ function SellerOrders() {
 }
 
 const styles = {
-  container: { maxWidth: '900px', margin: '40px auto', padding: '20px' },
-  title: { color: '#8b5a2b', textAlign: 'center', marginBottom: '30px' },
-  orderCard: { backgroundColor: '#fff', border: '1px solid #eaeaea', borderRadius: '8px', marginBottom: '20px', boxShadow: '0 2px 5px rgba(0,0,0,0.05)', overflow: 'hidden' },
-  orderHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '15px 20px', backgroundColor: '#f9f9f9', borderBottom: '1px solid #eaeaea', fontWeight: 'bold', color: '#333', flexWrap: 'wrap', gap: '10px' },
-  // NEW: Dropdown styles
-  statusDropdown: { padding: '6px 12px', fontSize: '14px', borderRadius: '5px', border: '1px solid #8b5a2b', cursor: 'pointer', fontWeight: 'bold', color: '#8b5a2b', backgroundColor: 'white' },
-  body: { display: 'flex', gap: '20px', padding: '20px', flexWrap: 'wrap' },
-  shippingBox: { flex: '1', minWidth: '250px', backgroundColor: '#fffaf0', border: '1px dashed #8b5a2b', borderRadius: '8px', padding: '15px' },
-  shippingTitle: { margin: '0 0 10px 0', color: '#8b5a2b', fontSize: '18px' },
-  shippingText: { margin: '5px 0', color: '#555', lineHeight: '1.5', fontSize: '16px' },
+  container: { maxWidth: '1200px', margin: '0 auto', padding: '40px 20px' },
+  title: { color: '#8b5a2b', textAlign: 'center', marginBottom: '3rem', fontSize: '32px' },
+  // NEW: Removed border, added subtle shadow and light bg, rounded 12px
+  orderCard: { 
+    backgroundColor: '#fcfcfc', 
+    border: 'none', 
+    borderRadius: '12px', 
+    marginBottom: '24px', 
+    boxShadow: '0 4px 6px rgba(0,0,0,0.05)', 
+    overflow: 'hidden' 
+  },
+  orderHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '24px 30px', backgroundColor: '#FDFBF7', borderBottom: '1px solid #f0f0f0', flexWrap: 'wrap', gap: '15px' },
+  // NEW: Typography hierarchy
+  label: { fontSize: '12px', color: '#888', fontWeight: '500', textTransform: 'uppercase' },
+  data: { fontSize: '16px', color: '#1a1a1a', fontWeight: '600', marginLeft: '5px' },
+  // NEW: Pill-shaped status badges
+  statusPending: { padding: '8px 16px', fontSize: '12px', borderRadius: '16px', border: 'none', cursor: 'pointer', fontWeight: 'bold', color: '#856404', backgroundColor: '#fff3cd' },
+  statusDelivered: { padding: '8px 16px', fontSize: '12px', borderRadius: '16px', border: 'none', cursor: 'pointer', fontWeight: 'bold', color: '#2E7D32', backgroundColor: '#E8F5E9' },
+  body: { display: 'flex', gap: '30px', padding: '30px', flexWrap: 'wrap' },
+  // NEW: Removed dashed border, soft bg
+  shippingBox: { flex: '1', minWidth: '250px', backgroundColor: '#f9f9f9', borderRadius: '8px', padding: '20px' },
+  boxTitle: { margin: '0 0 15px 0', color: '#8b5a2b', fontSize: '18px', fontWeight: '600' },
+  shippingText: { margin: '5px 0', color: '#333', lineHeight: '1.6', fontSize: '16px', fontWeight: '500' },
   itemsBox: { flex: '2', minWidth: '300px' },
-  itemRow: { display: 'flex', alignItems: 'center', gap: '15px', marginBottom: '15px', paddingBottom: '15px', borderBottom: '1px solid #f0f0f0' },
-  itemImage: { width: '60px', height: '60px', objectFit: 'cover', borderRadius: '5px' },
+  itemRow: { display: 'flex', alignItems: 'center', gap: '15px', marginBottom: '20px', paddingBottom: '20px', borderBottom: '1px solid #f0f0f0' },
+  itemImage: { width: '60px', height: '60px', objectFit: 'cover', borderRadius: '8px' },
   itemInfo: { display: 'flex', flexDirection: 'column' },
-  itemName: { margin: '0 0 5px 0', fontSize: '16px', color: '#333' },
+  itemName: { margin: '0 0 5px 0', fontSize: '16px', color: '#1a1a1a', fontWeight: '600' },
   itemDetails: { margin: 0, color: '#666', fontSize: '14px' }
 };
 

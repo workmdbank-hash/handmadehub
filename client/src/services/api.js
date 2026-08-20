@@ -1,5 +1,5 @@
-// api.js
-const API_URL = 'https://handmadehub-6c0t.onrender.com/api';
+// This automatically detects if you are on localhost (PC) or an IP address (Phone)!
+const API_URL = `http://${window.location.hostname}:3000/api`;
 
 // ==========================================
 // PRODUCT FUNCTIONS
@@ -185,9 +185,14 @@ export const createReview = async (reviewData) => {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${token}`
     },
-    body: JSON.stringify(reviewData)
+    body: JSON.stringify(reviewData) // Now includes orderItemId
   });
-  if (!response.ok) throw new Error('Failed to submit review');
+  
+  // NEW: Handle the specific 403/400 errors from the backend
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.message || 'Failed to submit review');
+  }
   return response.json();
 };
 
@@ -374,5 +379,243 @@ export const getOrderById = async (id) => {
     headers: { 'Authorization': `Bearer ${token}` }
   });
   if (!response.ok) throw new Error('Failed to fetch order details');
+  return response.json();
+};
+
+// NEW: Get Seller Statistics
+export const getSellerStats = async () => {
+  const token = localStorage.getItem('token');
+  const response = await fetch(`${API_URL}/orders/seller-stats`, {
+    headers: { 'Authorization': `Bearer ${token}` }
+  });
+  if (!response.ok) throw new Error('Failed to fetch seller stats');
+  return response.json();
+};
+
+// NEW: Check if user can review this product
+export const checkReviewEligibility = async (productId) => {
+  const token = localStorage.getItem('token');
+  if (!token) return { eligible: false };
+  
+  const response = await fetch(`${API_URL}/orders/check-review-eligibility/${productId}`, {
+    headers: { 'Authorization': `Bearer ${token}` }
+  });
+  if (!response.ok) return { eligible: false };
+  return response.json();
+};
+
+// NEW: Create seller review
+export const createSellerReview = async (reviewData) => {
+  const token = localStorage.getItem('token');
+  const response = await fetch(`${API_URL}/reviews/seller`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    },
+    body: JSON.stringify(reviewData)
+  });
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.message || 'Failed to submit seller review');
+  }
+  return response.json();
+};
+
+// NEW: Get seller reviews and rating
+export const getSellerReviews = async (sellerId) => {
+  const response = await fetch(`${API_URL}/reviews/seller/${sellerId}`);
+  if (!response.ok) throw new Error('Failed to fetch seller reviews');
+  return response.json();
+};
+
+// ==========================================
+// CHAT FUNCTIONS
+// ==========================================
+
+// 1. Create or get a conversation
+export const createConversation = async (sellerId, productId) => {
+  const token = localStorage.getItem('token');
+  const response = await fetch(`${API_URL}/conversations`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    },
+    body: JSON.stringify({ sellerId, productId })
+  });
+  if (!response.ok) throw new Error('Failed to start conversation');
+  return response.json();
+};
+
+// 2. Get all conversations for the inbox
+export const getMyConversations = async () => {
+  const token = localStorage.getItem('token');
+  const response = await fetch(`${API_URL}/conversations`, {
+    headers: { 'Authorization': `Bearer ${token}` }
+  });
+  if (!response.ok) throw new Error('Failed to fetch conversations');
+  return response.json();
+};
+
+// 3. Get single conversation and its messages
+export const getConversation = async (id) => {
+  const token = localStorage.getItem('token');
+  const response = await fetch(`${API_URL}/conversations/${id}`, {
+    headers: { 'Authorization': `Bearer ${token}` }
+  });
+  if (!response.ok) throw new Error('Failed to fetch messages');
+  return response.json();
+};
+
+// 4. Send a message
+export const sendMessage = async (conversationId, message) => {
+  const token = localStorage.getItem('token');
+  const response = await fetch(`${API_URL}/conversations/${conversationId}/messages`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    },
+    body: JSON.stringify({ message })
+  });
+  if (!response.ok) throw new Error('Failed to send message');
+  return response.json();
+};
+
+// NEW: Get unread message count
+export const getUnreadCount = async () => {
+  const token = localStorage.getItem('token');
+  if (!token) return { count: 0 };
+  const response = await fetch(`${API_URL}/conversations/unread-count`, {
+    headers: { 'Authorization': `Bearer ${token}` }
+  });
+  if (!response.ok) return { count: 0 };
+  return response.json();
+};
+
+// ==========================================
+// NOTIFICATION FUNCTIONS
+// ==========================================
+export const getMyNotifications = async () => {
+  const token = localStorage.getItem('token');
+  if (!token) return [];
+  const response = await fetch(`${API_URL}/notifications`, {
+    headers: { 'Authorization': `Bearer ${token}` }
+  });
+  if (!response.ok) throw new Error('Failed to fetch notifications');
+  return response.json();
+};
+
+export const markNotificationsRead = async () => {
+  const token = localStorage.getItem('token');
+  const response = await fetch(`${API_URL}/notifications/read`, {
+    method: 'PUT',
+    headers: { 'Authorization': `Bearer ${token}` }
+  });
+  if (!response.ok) throw new Error('Failed to mark notifications as read');
+  return response.json();
+};
+
+// ==========================================
+// SELLER DASHBOARD & FINANCE FUNCTIONS
+// ==========================================
+export const getSellerDashboardData = async () => {
+  const token = localStorage.getItem('token');
+  const response = await fetch(`${API_URL}/seller/dashboard`, {
+    headers: { 'Authorization': `Bearer ${token}` }
+  });
+  if (!response.ok) throw new Error('Failed to fetch dashboard data');
+  return response.json();
+};
+
+export const getSellerFinances = async () => {
+  const token = localStorage.getItem('token');
+  const response = await fetch(`${API_URL}/seller/finances`, {
+    headers: { 'Authorization': `Bearer ${token}` }
+  });
+  if (!response.ok) throw new Error('Failed to fetch finances');
+  return response.json();
+};
+
+// ==========================================
+// SHOP FUNCTIONS
+// ==========================================
+export const createOrUpdateShop = async (shopData) => {
+  const token = localStorage.getItem('token');
+  const response = await fetch(`${API_URL}/shops`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${token}` // No Content-Type here! Browser sets it for FormData.
+    },
+    body: shopData // Sending FormData directly
+  });
+  if (!response.ok) throw new Error('Failed to save shop');
+  return response.json();
+};
+
+export const getMyShop = async () => {
+  const token = localStorage.getItem('token');
+  const response = await fetch(`${API_URL}/shops/me`, {
+    headers: { 'Authorization': `Bearer ${token}` }
+  });
+  if (!response.ok) throw new Error('Failed to fetch shop');
+  return response.json();
+};
+
+export const getPublicShop = async (slug) => {
+  const response = await fetch(`${API_URL}/shops/${slug}`);
+  if (!response.ok) throw new Error('Shop not found');
+  return response.json();
+};
+
+// NEW: Seller Withdrawal Functions
+export const requestWithdrawal = async (amount) => {
+  const token = localStorage.getItem('token');
+  const response = await fetch(`${API_URL}/seller/withdrawal`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    },
+    body: JSON.stringify({ amount })
+  });
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.message || 'Failed to request withdrawal');
+  }
+  return response.json();
+};
+
+export const getMyWithdrawals = async () => {
+  const token = localStorage.getItem('token');
+  const response = await fetch(`${API_URL}/seller/withdrawals`, {
+    headers: { 'Authorization': `Bearer ${token}` }
+  });
+  if (!response.ok) throw new Error('Failed to fetch withdrawals');
+  return response.json();
+};
+
+// NEW: Admin Withdrawal Functions
+export const getAdminWithdrawals = async () => {
+  const token = localStorage.getItem('token');
+  const response = await fetch(`${API_URL}/admin/withdrawals`, {
+    headers: { 'Authorization': `Bearer ${token}` }
+  });
+  if (!response.ok) throw new Error('Failed to fetch withdrawals');
+  return response.json();
+};
+
+export const updateAdminWithdrawalStatus = async (id, status) => {
+  const token = localStorage.getItem('token');
+  const response = await fetch(`${API_URL}/admin/withdrawals/${id}`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    },
+    body: JSON.stringify({ status })
+  });
+  if (!response.ok) throw new Error('Failed to update withdrawal status');
   return response.json();
 };

@@ -1,12 +1,22 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { getOrderById } from '../services/api';
+import { getOrderById, createReview, createSellerReview } from '../services/api';
+import { toast } from 'react-toastify';
 
 function OrderDetails() {
   const { id } = useParams();
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+
+  const [activeReviewItem, setActiveReviewItem] = useState(null);
+  const [rating, setRating] = useState(5);
+  const [comment, setComment] = useState('');
+
+  const [sellerRating, setSellerRating] = useState(5);
+  const [sellerComment, setSellerComment] = useState('');
+  const [showSellerReviewForm, setShowSellerReviewForm] = useState(false);
+  const [sellerReviewed, setSellerReviewed] = useState(false);
 
   useEffect(() => {
     const fetchOrder = async () => {
@@ -15,12 +25,47 @@ function OrderDetails() {
         setOrder(data);
         setLoading(false);
       } catch (err) {
-        setError('Failed to load order details. Please try again.');
+        setError('Failed to load order details.');
         setLoading(false);
       }
     };
     fetchOrder();
   }, [id]);
+
+  const handleReviewSubmit = async (e, orderItemId, productId) => {
+    e.preventDefault();
+    try {
+      const response = await createReview({ rating, comment, productId, orderItemId });
+      setOrder({
+        ...order,
+        items: order.items.map(item => 
+          item.id === orderItemId ? { ...item, review: response.review } : item
+        )
+      });
+      setActiveReviewItem(null);
+      setComment('');
+      setRating(5);
+      toast.success('Product review submitted!');
+    } catch (error) {
+      toast.error(error.message || 'Failed to submit review.');
+    }
+  };
+
+  const handleSellerReviewSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const sellerId = order.items[0].product.userId;
+      await createSellerReview({ orderId: order.id, sellerId, rating: sellerRating, comment: sellerComment });
+      
+      setSellerReviewed(true);
+      setShowSellerReviewForm(false);
+      setSellerComment('');
+      setSellerRating(5);
+      toast.success('Seller review submitted!');
+    } catch (error) {
+      toast.error(error.message || 'Failed to submit seller review.');
+    }
+  };
 
   if (loading) return <div className="spinner"></div>;
   if (error) return <p style={{ textAlign: 'center', marginTop: '50px', color: 'red' }}>{error}</p>;
@@ -62,30 +107,92 @@ function OrderDetails() {
 
         <div style={styles.paymentBox}>
           <h3 style={styles.boxTitle}>Payment Summary</h3>
-            <div style={styles.row}>
-                <span>Subtotal</span>
-                <span>{order.total} Ks</span>
-            </div>
-            <div style={styles.totalRow}>
-                <span>Total</span>
-                <span>{order.total} Ks</span>
-            </div>
+          <div style={styles.row}>
+            <span>Subtotal</span>
+            <span>{order.total} Ks</span>
+          </div>
+          <div style={styles.totalRow}>
+            <span>Total</span>
+            <span>{order.total} Ks</span>
+          </div>
         </div>
       </div>
 
       <div style={styles.itemsSection}>
         <h2 style={styles.boxTitle}>Items in this Order</h2>
-        {order.items.map((item) => (
-          <div key={item.id} style={styles.itemRow}>
-                <img src={item.product.images[0].startsWith('/images') ? `https://handmadehub-6c0t.onrender.com${item.product.images[0]}` : item.product.images[0]} alt={item.product.name} style={styles.itemImage} />
-            <div style={styles.itemInfo}>
-              <Link to={`/product/${item.productId}`} style={styles.itemName}>{item.product.name}</Link>
-              <p style={styles.itemDetails}>Quantity: {item.quantity}</p>
+        {order.items.map((item) => {
+          let imgSrc = 'https://placehold.co/70x70/eee/ccc?text=No+Img';
+          if (item.product.images && item.product.images.length > 0) {
+            imgSrc = item.product.images[0].startsWith('/images') ? `http://localhost:3000${item.product.images[0]}` : item.product.images[0];
+          }
+
+          return (
+            <div key={item.id} style={styles.itemRow}>
+              <img src={imgSrc} alt={item.product.name} style={styles.itemImage} />
+              <div style={styles.itemInfo}>
+                <Link to={`/product/${item.productId}`} style={styles.itemName}>{item.product.name}</Link>
+                <p style={styles.itemDetails}>Quantity: {item.quantity}</p>
+                
+                {order.status === 'DELIVERED' && (
+                  <div style={styles.reviewSection}>
+                    {item.review ? (
+                      <div style={styles.existingReview}>
+                        <p style={styles.reviewRating}>{"⭐".repeat(item.review.rating)}</p>
+                        <p style={styles.reviewComment}>{item.review.comment}</p>
+                      </div>
+                    ) : activeReviewItem === item.id ? (
+                      <form onSubmit={(e) => handleReviewSubmit(e, item.id, item.productId)} style={styles.reviewForm}>
+                        <select value={rating} onChange={(e) => setRating(e.target.value)} style={styles.select}>
+                          <option value="5">⭐⭐⭐⭐⭐ (5/5)</option>
+                          <option value="4">⭐⭐⭐⭐ (4/5)</option>
+                          <option value="3">⭐⭐⭐ (3/5)</option>
+                          <option value="2">⭐⭐ (2/5)</option>
+                          <option value="1">⭐ (1/5)</option>
+                        </select>
+                        <textarea style={styles.textarea} placeholder="Write your product review..." value={comment} onChange={(e) => setComment(e.target.value)} required />
+                        <div style={{ display: 'flex', gap: '10px' }}>
+                          <button type="submit" style={styles.submitBtn}>Submit Product Review</button>
+                          <button type="button" onClick={() => setActiveReviewItem(null)} style={styles.cancelBtn}>Cancel</button>
+                        </div>
+                      </form>
+                    ) : (
+                      <button onClick={() => setActiveReviewItem(item.id)} style={styles.leaveReviewBtn}>Review this Product</button>
+                    )}
+                  </div>
+                )}
+              </div>
+              <p style={styles.itemPrice}>{item.price} Ks</p>
             </div>
-            <p style={styles.itemPrice}>{item.price} Ks</p>
-          </div>
-        ))}
+          );
+        })}
       </div>
+
+      {/* Seller Rating Section */}
+      {order.status === 'DELIVERED' && (
+        <div style={styles.sellerReviewBox}>
+          <h2 style={styles.boxTitle}>Rate the Seller</h2>
+          {sellerReviewed ? (
+            <p style={{ color: 'green', fontWeight: 'bold' }}>✅ Thank you for rating the seller!</p>
+          ) : showSellerReviewForm ? (
+            <form onSubmit={handleSellerReviewSubmit} style={styles.reviewForm}>
+              <select value={sellerRating} onChange={(e) => setSellerRating(e.target.value)} style={styles.select}>
+                <option value="5">⭐⭐⭐⭐⭐ (5/5)</option>
+                <option value="4">⭐⭐⭐⭐ (4/5)</option>
+                <option value="3">⭐⭐⭐ (3/5)</option>
+                <option value="2">⭐⭐ (2/5)</option>
+                <option value="1">⭐ (1/5)</option>
+              </select>
+              <textarea style={styles.textarea} placeholder="How was your experience with this seller?" value={sellerComment} onChange={(e) => setSellerComment(e.target.value)} required />
+              <div style={{ display: 'flex', gap: '10px' }}>
+                <button type="submit" style={styles.submitBtn}>Submit Seller Rating</button>
+                <button type="button" onClick={() => setShowSellerReviewForm(false)} style={styles.cancelBtn}>Cancel</button>
+              </div>
+            </form>
+          ) : (
+            <button onClick={() => setShowSellerReviewForm(true)} style={styles.leaveReviewBtn}>Leave a Seller Rating</button>
+          )}
+        </div>
+      )}
 
       <Link to="/myorders" style={styles.backLink}>← Back to My Orders</Link>
     </div>
@@ -93,26 +200,40 @@ function OrderDetails() {
 }
 
 const styles = {
-  container: { maxWidth: '900px', margin: '40px auto', padding: '20px' },
+  container: { maxWidth: '1200px', margin: '0 auto', padding: '40px 20px' },
   header: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', borderBottom: '2px solid #8b5a2b', paddingBottom: '20px', marginBottom: '30px', flexWrap: 'wrap', gap: '15px' },
-  title: { color: '#8b5a2b', margin: '0 0 5px 0' },
-  orderId: { margin: '0 0 5px 0', color: '#333', fontWeight: 'bold' },
+  title: { color: '#8b5a2b', margin: '0 0 5px 0', fontSize: '32px' },
+  orderId: { margin: '0 0 5px 0', color: '#333', fontWeight: '600', fontSize: '16px' },
   date: { margin: 0, color: '#666', fontSize: '14px' },
-  statusBadge: { padding: '8px 16px', borderRadius: '20px', fontSize: '14px', fontWeight: 'bold', height: 'fit-content' },
+  statusBadge: { padding: '8px 16px', borderRadius: '16px', fontSize: '12px', fontWeight: 'bold', height: 'fit-content' },
   grid: { display: 'flex', gap: '20px', marginBottom: '30px', flexWrap: 'wrap' },
-  shippingBox: { flex: '1', minWidth: '250px', backgroundColor: '#fffaf0', border: '1px dashed #8b5a2b', borderRadius: '8px', padding: '20px' },
+  // NEW: Soft bg, no dashed border
+  shippingBox: { flex: '1', minWidth: '250px', backgroundColor: '#fcfcfc', borderRadius: '8px', padding: '20px' },
   paymentBox: { flex: '1', minWidth: '250px', backgroundColor: '#fff', border: '1px solid #eaeaea', borderRadius: '8px', padding: '20px' },
   boxTitle: { color: '#8b5a2b', marginTop: '0', marginBottom: '15px', fontSize: '18px' },
   shippingText: { margin: '5px 0', color: '#555', lineHeight: '1.5' },
   row: { display: 'flex', justifyContent: 'space-between', color: '#666', marginBottom: '10px' },
   totalRow: { display: 'flex', justifyContent: 'space-between', borderTop: '1px solid #eee', paddingTop: '10px', marginTop: '10px', fontSize: '18px', fontWeight: 'bold', color: '#1a1a1a' },
-  itemsSection: { backgroundColor: '#fff', padding: '20px', borderRadius: '8px', boxShadow: '0 2px 5px rgba(0,0,0,0.05)' },
-  itemRow: { display: 'flex', alignItems: 'center', gap: '15px', borderBottom: '1px solid #f0f0f0', paddingBottom: '15px', marginBottom: '15px' },
-  itemImage: { width: '70px', height: '70px', objectFit: 'cover', borderRadius: '5px' },
+  // NEW: Soft shadow, no border
+  itemsSection: { backgroundColor: '#fcfcfc', border: 'none', borderRadius: '12px', padding: '24px 30px', boxShadow: '0 4px 6px rgba(0,0,0,0.05)', marginBottom: '20px' },
+  itemRow: { display: 'flex', alignItems: 'flex-start', gap: '15px', borderBottom: '1px solid #f0f0f0', paddingBottom: '15px', marginBottom: '15px' },
+  itemImage: { width: '70px', height: '70px', objectFit: 'cover', borderRadius: '8px' },
   itemInfo: { flexGrow: 1 },
-  itemName: { margin: '0 0 5px 0', fontSize: '16px', color: '#333', textDecoration: 'none', fontWeight: '600' },
-  itemDetails: { margin: 0, color: '#666', fontSize: '14px' },
-  itemPrice: { fontSize: '16px', fontWeight: 'bold', color: '#333' },
+  itemName: { margin: '0 0 5px 0', fontSize: '16px', color: '#1a1a1a', textDecoration: 'none', fontWeight: '600' },
+  itemDetails: { margin: '0 0 10px 0', color: '#666', fontSize: '14px' },
+  reviewSection: { marginTop: '10px' },
+  existingReview: { backgroundColor: '#f9f9f9', padding: '10px', borderRadius: '8px', border: '1px solid #eee' },
+  reviewRating: { margin: '0 0 5px 0', color: '#8b5a2b' },
+  reviewComment: { margin: 0, color: '#555', fontSize: '14px' },
+  leaveReviewBtn: { padding: '8px 16px', backgroundColor: '#8b5a2b', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '14px', fontWeight: '600' },
+  reviewForm: { display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '10px' },
+  select: { height: '40px', padding: '8px 12px', fontSize: '14px', borderRadius: '8px', border: '1px solid #ccc' },
+  textarea: { height: 'auto', minHeight: '80px', padding: '8px 12px', fontSize: '14px', borderRadius: '8px', border: '1px solid #ccc', resize: 'vertical' },
+  submitBtn: { height: '40px', backgroundColor: '#8b5a2b', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '14px', fontWeight: '600' },
+  cancelBtn: { height: '40px', backgroundColor: '#ccc', color: '#333', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '14px', fontWeight: '600' },
+  itemPrice: { fontSize: '16px', fontWeight: 'bold', color: '#1a1a1a' },
+  // NEW: Soft shadow, no border
+  sellerReviewBox: { backgroundColor: '#fcfcfc', border: 'none', borderRadius: '12px', padding: '24px 30px', boxShadow: '0 4px 6px rgba(0,0,0,0.05)', marginBottom: '20px' },
   backLink: { display: 'block', marginTop: '30px', color: '#8b5a2b', textDecoration: 'none', fontWeight: 'bold' }
 };
 

@@ -1,98 +1,195 @@
-/* App.css */
-body {
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background-color: #f9f9f9;
+/* ==========================================
+   GLOBAL RESET & FOUNDATIONS
+   ========================================== */
+*, *::before, *::after {
+  box-sizing: border-box !important;
   margin: 0;
   padding: 0;
 }
 
-a {
-  text-decoration: none;
-  color: inherit;
+html, body {
+  width: 100%;
+  overflow-x: clip; /* NEW: Stops horizontal scroll but allows sticky headers */
 }
 
-/* LOADING SPINNER */
+body {
+  font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #F4F1EA;
+  color: #1a1a1a;
+  padding-top: 20px;
+}
+
+a { text-decoration: none; color: inherit; }
+img { max-width: 100%; height: auto; display: block; }
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Poppins', 'Segoe UI', sans-serif;
+  letter-spacing: -0.5px;
+}
+
+/* ==========================================
+   UTILITY CLASSES (Spinner, Scrollbars)
+   ========================================== */
 .spinner {
-  width: 50px;
-  height: 50px;
+  width: 50px; height: 50px;
   border: 5px solid #f3f3f3;
   border-top: 5px solid #8b5a2b; 
   border-radius: 50%;
   animation: spin 1s linear infinite;
   margin: 50px auto;
 }
-
 @keyframes spin {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
 }
+.category-scroll::-webkit-scrollbar { display: none; }
+.category-scroll { -ms-overflow-style: none; scrollbar-width: none; }
 
-/* TABLET RESPONSIVE STYLES (iPads, small laptops) */
-@media (max-width: 1024px) {
-  /* Show exactly 2 columns on tablets */
-  .product-grid {
-    grid-template-columns: repeat(2, 1fr) !important;
-  }
+/* ==========================================
+   PRODUCT CARD HOVER EFFECTS
+   ========================================== */
+.product-card:hover {
+  transform: translateY(-5px); 
+  box-shadow: 0 12px 20px rgba(0,0,0,0.12) !important; 
+  border-color: #e0e0e0 !important;
+}
+.product-card:hover .card-image {
+  transform: scale(1.05); 
+}
+.card-btn:hover {
+  background-color: #8b5a2b !important; 
 }
 
-/* MOBILE RESPONSIVE STYLES (Phones) */
-@media (max-width: 768px) {
-  /* Show the mobile menu button (☰) */
-  .mobile-menu-btn {
-    display: block !important;
+/* ==========================================
+   MOBILE RESPONSIVE REDESIGN (945px and down)
+   ========================================== */
+@media (max-width: 945px) {
+  /* 1. Header Layout */
+  header {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    padding: 12px 16px !important;
+    gap: 12px !important;
+    height: auto !important;
   }
-
-  /* Hide the desktop navigation links */
-  .desktop-nav {
-    display: none !important;
+  .topRow {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    width: 100% !important;
+    flex-wrap: wrap !important;
   }
-
-  /* Hide the desktop Register/Login buttons */
-  .auth-box {
-    display: none !important;
+  .leftSection { order: 1; flex-shrink: 0; }
+  .rightActions { order: 2; flex-shrink: 0; gap: 15px !important; }
+  .centerSection {
+    order: 3 !important;
+    width: 100% !important;
   }
+  .desktop-nav { display: none !important; }
+  .mobile-menu-btn { display: block !important; }
+  .auth-box { display: none !important; }
+  .welcome { display: none !important; }
 
-  /* Show 1 column on small phones */
+  /* 2. Global Layout Fixes (Stops Horizontal Scroll) */
+  main, div {
+    max-width: 100% !important;
+  }
+  
+  /* 3. Product Grid (Strict 2 Columns) */
   .product-grid {
-    grid-template-columns: 1fr !important;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 12px !important;
+    padding: 0 12px !important;
   }
+  .card-info { padding: 10px !important; }
+  .card-name { font-size: 14px !important; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .card-price { font-size: 16px !important; }
+  .card-btn { padding: 6px 10px !important; font-size: 12px !important; }
+  .card-bottom { flex-direction: row !important; justify-content: space-between !important; padding: 10px !important; }
 
-  /* Make the product detail page stack into 1 column */
+  /* 4. Detail Pages (Stack Vertically) */
   .detail-grid {
     grid-template-columns: 1fr !important;
     gap: 20px !important;
   }
+  .detail-image { height: 300px !important; }
+  .buttonGroup { flex-direction: column !important; }
+  .buttonGroup button { width: 100% !important; }
 
-  /* Make the detail image smaller on mobile */
-  .detail-image {
-    height: 300px !important;
+  /* 5. Tables (Swipeable, don't break layout) */
+  .tableWrapper, div[style*="overflow-x: auto"] {
+    width: 100% !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+  }
+  table {
+    width: 100% !important;
+    min-width: 600px; /* Forces table to keep shape, allows swiping */
   }
 
-  /* Shrink Hero text on mobile */
-  .hero-title {
-    font-size: 32px !important;
+  /* 6. Forms & Modals */
+  .auth-card { padding: 20px !important; }
+  .form-row { flex-direction: column !important; gap: 15px !important; }
+  .admin-modal { width: 95% !important; padding: 20px !important; max-height: 85vh !important; }
+  .admin-modal-grid { flex-direction: column !important; gap: 20px !important; }
+  .admin-modal-col { min-width: 100% !important; }
+  
+  .auth-card h1 { font-size: 22px !important; }
+  .auth-card h3 { font-size: 16px !important; }
+  .auth-card p { font-size: 13px !important; }
+  .auth-card input, .auth-card textarea { font-size: 14px !important; }
+
+  .admin-modal h2 { font-size: 20px !important; }
+  .admin-modal h3 { font-size: 16px !important; }
+  .admin-modal p { font-size: 13px !important; }
+  .admin-modal button { font-size: 12px !important; }
+
+  /* 7. Mobile Dropdown Menu */
+  .mobile-nav {
+    padding: 0 15px 15px 15px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
   }
-  .hero-text {
-    font-size: 16px !important;
-  }
+  .mobile-nav .mobileHeader { padding: 15px 0 !important; }
+  .mobile-nav .mobileLogo { font-size: 18px !important; }
+  .mobile-nav .mobileCloseBtn { font-size: 20px !important; }
+  .mobile-nav .mobileNavLink { font-size: 15px !important; padding: 12px 5px !important; gap: 12px !important; }
+  .mobile-nav .mobileProfileCard { padding: 12px 5px !important; }
+  .mobile-nav .mobileProfileCard div span { font-size: 14px !important; }
+  .mobile-nav .mobileAuthBtn { padding: 10px !important; font-size: 14px !important; }
+  .mobile-nav .mobileLogoutBtn { padding: 12px !important; font-size: 14px !important; width: 100% !important; box-sizing: border-box !important; }
+
+  .search-form { gap: 0 !important; }
+  .searchInput { font-size: 14px !important; padding-left: 10px !important; }
+  .searchBtn { padding: 0 10px !important; font-size: 14px !important; }
+  .cartBtn { padding: 6px 12px !important; font-size: 13px !important; }
+    /* NEW: Reduce font sizes for Admin Sub-Pages */
+  .admin-sub-page h1 { font-size: 22px !important; }
+  .admin-sub-page table th { font-size: 10px !important; padding: 8px !important; }
+  .admin-sub-page table td { font-size: 13px !important; padding: 10px 8px !important; }
+  .admin-sub-page p, .admin-sub-page span, .admin-sub-page strong { font-size: 13px !important; }
+  .admin-sub-page button { font-size: 11px !important; padding: 5px 10px !important; }
 }
 
-/* Custom thin scrollbar for category bar */
-.categoryBar::-webkit-scrollbar {
-  height: 6px;
-}
-.categoryBar::-webkit-scrollbar-track {
-  background: #f1f1f1;
-  border-radius: 10px;
-}
-.categoryBar::-webkit-scrollbar-thumb {
-  background: #8b5a2b;
-  border-radius: 10px;
-}
-
-/* PRODUCT CARD HOVER EFFECT */
-.product-card:hover {
-  transform: translateY(-5px); /* Moves the card up 5 pixels */
-  box-shadow: 0 12px 20px rgba(0,0,0,0.12) !important; /* Makes the shadow bigger */
-  border-color: #e0e0e0 !important;
+/* ==========================================
+   iPHONE MINI FIX (Max Width 390px)
+   ========================================== */
+@media (max-width: 390px) {
+  header {
+    padding: 10px 12px !important;
+    gap: 10px !important;
+  }
+  .brand-logo { font-size: 18px !important; }
+  
+  /* Squeeze Header Elements */
+  .rightActions { gap: 10px !important; }
+  .userMenuBtn { gap: 5px !important; }
+  
+  .product-grid {
+    gap: 10px !important;
+    padding: 0 10px !important;
+  }
+  .card-name { font-size: 13px !important; }
+  .card-price { font-size: 14px !important; }
+  .card-btn { padding: 4px 8px !important; font-size: 11px !important; }
 }

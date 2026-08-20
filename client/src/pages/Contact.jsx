@@ -21,7 +21,7 @@ const styles = {
   container: { maxWidth: '800px', margin: '40px auto', padding: '20px' },
   title: { color: '#8b5a2b', textAlign: 'center' },
   text: { fontSize: '18px', color: '#555', textAlign: 'center', marginBottom: '30px' },
-  card: { backgroundColor: '#fff', padding: '30px', borderRadius: '8px', boxShadow: '0 2px 5px rgba(0,0,0,0.1)', textAlign: 'center' },
+  card: { backgroundColor: '#FDFBF7', padding: '30px', borderRadius: '8px', boxShadow: '0 2px 5px rgba(0,0,0,0.1)', textAlign: 'center' },
   cardTitle: { color: '#8b5a2b', marginTop: 0 },
   cardText: { fontSize: '16px', color: '#666', margin: '10px 0' }
 };
