@@ -1,5 +1,5 @@
 // This automatically detects if you are on localhost (PC) or an IP address (Phone)!
-const API_URL = 'https://weak-pots-smoke.loca.lt/api';
+const API_URL = 'https://slick-aliens-shave.loca.lt/api';
 // ==========================================
 // PRODUCT FUNCTIONS
 // ==========================================
